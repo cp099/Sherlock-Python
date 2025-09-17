@@ -1,3 +1,195 @@
-from django.db import models
+# In your Django app's models.py file
 
-# Create your models here.
+from django.db import models
+from django.conf import settings # To link to the User model
+from django.core.validators import MaxValueValidator, MinValueValidator
+from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
+from django.contrib.contenttypes.models import ContentType
+from django.urls import reverse
+
+# Python libraries we will need to install:
+# pip install python-barcode qrcode
+
+import barcode
+from barcode.writer import SVGWriter
+import qrcode
+import qrcode.image.svg
+
+# ==============================================================================
+# 1. SECTION MODEL
+# Replicates your Section model for high-level locations (e.g., "Main Lab").
+# ==============================================================================
+class Section(models.Model):
+    section_code = models.PositiveIntegerField(
+        unique=True,
+        validators=[
+            MinValueValidator(1),
+            MaxValueValidator(9999)
+        ],
+        help_text="A unique 4-digit code for this section (1-9999)."
+    )
+    name = models.CharField(max_length=50)
+    description = models.CharField(max_length=100)
+    
+    # This connects this model to the SearchEntry model
+    search_entry = GenericRelation('SearchEntry', object_id_field='object_id', content_type_field='content_type')
+
+    def __str__(self):
+        return f"{self.name} (Section: {self.section_code})"
+    
+    def get_absolute_url(self):
+        # This will create URLs like /sections/1001/
+        return reverse('section-detail', kwargs={'section_code': self.section_code})
+
+    def generate_qr_code_svg(self):
+        """Generates the QR code SVG content, replicating the Rails logic."""
+        # Pad the name and description exactly as in the original code
+        padded_name = (self.name + '*' * 50)[:50]
+        padded_desc = (self.description + '*' * 100)[:100]
+        
+        qr_data = (
+            f"SHERLOCK;SECTIONCODE:{str(self.section_code).zfill(4)};;"
+            f"RESTOREDATA;NAME:{padded_name};DESCRIPTION:{padded_desc};;"
+        )
+        
+        # Generate SVG QR code
+        img = qrcode.make(qr_data, image_factory=qrcode.image.svg.SvgPathImage)
+        return img.to_string(encoding='unicode')
+
+# ==============================================================================
+# 2. SPACE MODEL
+# Replicates your Space model for specific locations within a Section (e.g., "Workbench A").
+# ==============================================================================
+class Space(models.Model):
+    section = models.ForeignKey(Section, on_delete=models.CASCADE, related_name='spaces')
+    space_code = models.PositiveIntegerField(
+        validators=[
+            MinValueValidator(1),
+            MaxValueValidator(9999)
+        ],
+        help_text="A 4-digit code for this space, unique within its section (1-9999)."
+    )
+    name = models.CharField(max_length=50)
+    description = models.CharField(max_length=100)
+    
+    search_entry = GenericRelation('SearchEntry')
+
+    class Meta:
+        # Ensures that space_code is unique for a given section
+        unique_together = ('section', 'space_code')
+
+    def __str__(self):
+        return f"{self.name} (Space: {self.space_code} in {self.section.name})"
+        
+    def get_absolute_url(self):
+        # This will create URLs like /sections/1001/spaces/2001/
+        return reverse('space-detail', kwargs={'section_code': self.section.section_code, 'space_code': self.space_code})
+
+    def generate_qr_code_svg(self):
+        """Generates the QR code SVG content, replicating the Rails logic."""
+        padded_name = (self.name + '*' * 50)[:50]
+        padded_desc = (self.description + '*' * 100)[:100]
+        
+        qr_data = (
+            f"SHERLOCK;SECTIONCODE:{str(self.section.section_code).zfill(4)};"
+            f"SPACECODE:{str(self.space_code).zfill(4)};;"
+            f"RESTOREDATA;NAME:{padded_name};DESCRIPTION:{padded_desc};;"
+        )
+        
+        img = qrcode.make(qr_data, image_factory=qrcode.image.svg.SvgPathImage)
+        return img.to_string(encoding='unicode')
+
+
+# ==============================================================================
+# 3. ITEM MODEL
+# Replicates your core Item model for inventory.
+# ==============================================================================
+class Item(models.Model):
+    space = models.ForeignKey(Space, on_delete=models.CASCADE, related_name='items')
+    item_code = models.PositiveIntegerField(
+        validators=[
+            MinValueValidator(1),
+            MaxValueValidator(9999)
+        ],
+        help_text="A 4-digit code for this item, unique within its space (1-9999)."
+    )
+    name = models.CharField(max_length=50)
+    description = models.CharField(max_length=100)
+    quantity = models.PositiveIntegerField(
+        validators=[MinValueValidator(1)]
+    )
+    
+    search_entry = GenericRelation('SearchEntry')
+
+    class Meta:
+        # Ensures that item_code is unique for a given space
+        unique_together = ('space', 'item_code')
+
+    def __str__(self):
+        return f"{self.name} (Item: {self.item_code} in {self.space.name})"
+    
+    def get_absolute_url(self):
+        return reverse('item-detail', kwargs={
+            'section_code': self.space.section.section_code,
+            'space_code': self.space.space_code,
+            'item_code': self.item_code
+        })
+
+    def generate_barcode_svg(self):
+        """Generates the EAN-13 barcode SVG content."""
+        EAN = barcode.get_barcode_class('ean13')
+        
+        # Construct the 12-digit code for the EAN-13 barcode
+        section_str = str(self.space.section.section_code).zfill(4)
+        space_str = str(self.space.space_code).zfill(4)
+        item_str = str(self.item_code).zfill(4)
+        barcode_value = f"{section_str}{space_str}{item_str}"
+
+        # The python-barcode library automatically calculates the 13th checksum digit
+        ean_barcode = EAN(barcode_value, writer=SVGWriter())
+        return ean_barcode.render()
+
+
+# ==============================================================================
+# 4. PRINT QUEUE MODELS
+# Replicates the print queue system.
+# ==============================================================================
+class PrintQueue(models.Model):
+    # A OneToOneField ensures each user gets exactly one print queue
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"Print Queue for {self.user.username}"
+
+class PrintQueueItem(models.Model):
+    print_queue = models.ForeignKey(PrintQueue, on_delete=models.CASCADE, related_name='items')
+    name = models.CharField(max_length=255)
+    quantity = models.PositiveIntegerField(validators=[MinValueValidator(1)])
+    
+    # TextField is better for storing potentially large SVG/HTML content
+    print_content = models.TextField()
+    item_hash = models.CharField(max_length=64) # For SHA256 hashes
+
+    def __str__(self):
+        return f"{self.quantity}x {self.name} in {self.print_queue}"
+
+
+# ==============================================================================
+# 5. SEARCH ENTRY MODEL (Polymorphic)
+# Replicates the polymorphic Searchable relationship using Django's ContentType framework.
+# ==============================================================================
+class SearchEntry(models.Model):
+    name = models.CharField(max_length=255)
+    url = models.CharField(max_length=500) # Store the generated URL
+
+    # These three fields create the generic (polymorphic) relationship
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    object_id = models.PositiveIntegerField()
+    searchable_object = GenericForeignKey('content_type', 'object_id')
+
+    class Meta:
+        # Ensures an object (like a specific item) can only have one search entry
+        unique_together = ('content_type', 'object_id')
+
+    def __str__(self):
+        return f"Search entry for '{self.name}'"
