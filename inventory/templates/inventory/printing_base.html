@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Sherlock Printing</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <style>
+        /* Basic styles to help with page breaks for printing */
+        body { margin: 0; padding: 1cm; }
+        .printdiv { 
+            page-break-inside: avoid;
+            page-break-after: always;
+            border: 1px dashed #ccc;
+            padding: 10px;
+            margin-bottom: 1cm;
+        }
+    </style>
+</head>
+<body>
+    {% block content %}{% endblock %}
+</body>
+</html>

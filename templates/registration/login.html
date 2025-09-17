@@ -1,0 +1,29 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Login to Sherlock</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter+Display:wght@100..900&family=Source+Serif+4:ital,wght@0,200..900;1,200..900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'inventory/css/main.css' %}">
+</head>
+<body>
+    <div class="page-centered">
+        <div class="centered-content front-page">
+            
+            <!-- Added Sherlock Logo -->
+            <img src="{% static 'inventory/images/logo.svg' %}" alt="Sherlock Logo" width="300" class="auth-form-logo">
+            
+            <h2>Login</h2>
+            <form method="post">
+                {% csrf_token %}
+                {{ form.as_p }}
+                <button type="submit">Login</button>
+            </form>
+            <p><a href="{% url 'signup' %}">Don't have an account? Sign up</a></p>
+        </div>
+    </div>
+</body>
+</html>

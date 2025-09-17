@@ -1,0 +1,17 @@
+{% extends "inventory/base.html" %}
+
+{% block content %}
+    {% if item %}
+        <p><a href="{% url 'inventory:item_detail' section.section_code space.space_code item.item_code %}">< Go back to "{{ item.name }}"</a></p>
+        <h1>Edit <i>"{{ item.name }}"</i></h1>
+    {% else %}
+        <p><a href="{% url 'inventory:item_list' section.section_code space.space_code %}">< See all items in "{{ space.name }}"</a></p>
+        <h1>Add an Item</h1>
+    {% endif %}
+
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Submit</button>
+    </form>
+{% endblock %}

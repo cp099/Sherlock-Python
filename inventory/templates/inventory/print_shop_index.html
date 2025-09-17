@@ -1,0 +1,18 @@
+{% extends "inventory/base.html" %}
+
+{% block content %}
+    <h1>Sherlock PrintShop</h1>
+
+    <h2>Printing</h2>
+    <p>Open the following page and follow the given steps to get your prints:</p>
+    <ul>
+        <li>Go to the print dialog by pressing Command+P (Mac) or Control+P (Windows/Linux), or by using the browser's toolbar.</li>
+        <li>Adjust the zoom until the width of the labels are correct.</li>
+        <li>Proceed to printing.</li>
+    </ul>
+
+    <a href="{% url 'inventory:print_page' %}" target="_blank">Open Print Page</a>
+
+    <h2>Why are we relying on the browser to generate print files?</h2>
+    <p>This is due to the fact that a. most browsers have reliable printing systems and b. this removes quite a lot of complexity from the codebase. When a feature is present, why not use it?</p>
+{% endblock %}

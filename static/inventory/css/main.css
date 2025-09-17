@@ -1,0 +1,286 @@
+body {
+  background-color: #FAFAFA;
+}
+
+.print-body {
+  background-color: #fff;
+}
+
+.separator {
+  width: 100%;
+  height: 1px;
+  background-color: #000;
+  margin-top: 2em;
+  margin-bottom: 2em;
+}
+
+.field {
+  font-family: "Source Serif 4", serif; /* Added fallback font */
+  font-weight: 300;
+  margin-bottom: 10px;
+}
+
+.destructive-background {
+  background-color: #dd0000;
+}
+
+.printdiv {
+  display: inline-block;
+  border: 2px dotted #656565;
+  margin: 5px;
+  padding: 5px;
+  align-items: center;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: "Inter Display", sans-serif; /* Added fallback font */
+}
+
+h1 {
+  font-weight: 700;
+  color: #01a995;
+  font-size: 2.25em;
+}
+
+h2 {
+  margin-top: 2em;
+  border-bottom: 1px solid #3B3B3B;
+}
+
+p, li {
+  font-family: "Source Serif 4", serif; /* Added fallback font */
+  font-weight: 300;
+}
+
+.destructive {
+  color: #dd0000;
+}
+
+table {
+  font-family: "Inter Display", sans-serif; /* Added fallback font */
+}
+
+mark {
+  color: #fff;
+  background-color: #134f44;
+}
+
+.alert {
+  font-family: "Inter Display", sans-serif;
+  font-weight: 600;
+  font-size: 12pt;
+}
+
+.alert-success {
+  color: #54820a;
+}
+
+.alert-danger {
+  color: #aa0000;
+}
+
+.link-button {
+  text-decoration: none;
+  font-family: "Inter Display", sans-serif;
+  color: white;
+  font-weight: 600;
+  background-color: #208170;
+  padding: 8px 12px;
+  border-radius: 22px;
+  padding-inline: 30px;
+  display: inline-block;
+  font-size: 20px;
+}
+
+.block-button {
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
+
+a {
+  color: #01a995;
+  font-family: "Source Serif 4", serif;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+button, input[type=submit] {
+  font-family: "Inter Display", sans-serif;
+  color: white;
+  border: 0px;
+  font-weight: 600;
+  background-color: #208170;
+  padding: 8px 12px;
+  border-radius: 22px;
+  padding-inline: 30px;
+  display: inline-block;
+  font-size: 16px;
+  cursor: pointer;
+  margin-top: 5px;
+  margin-bottom: 5px;
+}
+
+.page-centered {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  -webkit-transform: translate(-50%, -50%);
+  -moz-transform: translate(-50%, -50%);
+  -ms-transform: translate(-50%, -50%);
+  -o-transform: translate(-50%, -50%);
+  transform: translate(-50%, -50%);
+}
+
+.centered-content {
+  text-align: center;
+}
+
+.front-page {
+  width: 400px;
+}
+
+input {
+  padding: 2px 15px;
+  border-radius: 5px;
+  border: 1px solid teal;
+  font-size: 14px;
+}
+
+nav {
+  min-height: 100%;
+  width: 300px;
+  position: fixed;
+  z-index: 200;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  background-color: #3B3B3B;
+  overflow-x: hidden;
+  overflow-y: hidden;
+}
+
+.navigation-header {
+  background-color: #208170;
+  padding: 20px;
+}
+
+.navigation-content {
+  overflow-y: scroll;
+  overflow-x: hidden;
+}
+
+.navigation-object {
+  padding: 7px 25px;
+}
+
+.navigation-category {
+  margin-top: 20px;
+}
+
+.navigation-category-title {
+  font-family: "Inter Display", sans-serif;
+  color: #01d1c1;
+  font-size: 14px;
+  text-transform: uppercase;
+  font-weight: 900;
+}
+
+.navigation-link {
+  display: block;
+  color: white;
+  text-decoration: none;
+  font-family: "Inter Display", sans-serif;
+  font-weight: 400;
+  font-size: 16px;
+}
+.navigation-link:hover {
+  background-color: rgba(255, 255, 255, 0.25);
+}
+
+main {
+  margin-left: 300px;
+  padding: 25px 50px;
+}
+
+.searchbar-textfield {
+  padding: 8px 115px 8px 12px;
+  font-size: 16px;
+  font-weight: 600;
+  width: 250px;
+  border-radius: 0 !important;
+}
+
+.searchbar-actions {
+  position: relative;
+  display: inline-block;
+  left: -100px;
+}
+.searchbar-actions a {
+  font-family: "Inter Display" !important;
+  text-decoration: none;
+}
+
+.searchbar-go {
+  border-radius: 0 !important;
+}
+
+.searchbar-clear {
+  right: 10px;
+  position: relative;
+}
+
+.standard-table {
+  border-collapse: collapse;
+}
+.standard-table th {
+  background-color: #ccc;
+  border-left: #aaa solid 1px;
+  border-right: #aaa solid 1px;
+  border-bottom: #111 solid 1px;
+  margin: 0;
+  padding: 5px;
+  border-collapse: collapse;
+  text-align: left;
+}
+.standard-table td {
+  border-left: #aaa solid 1px;
+  border-right: #aaa solid 1px;
+  border-bottom: #aaa solid 1px;
+  margin: 0;
+  padding: 5px;
+  border-collapse: collapse;
+}
+.standard-table tr:nth-child(even) {
+  background: white;
+}
+.standard-table tr:nth-child(odd) {
+  background: #F7F7F7;
+}
+
+.open-table {
+  border-collapse: collapse;
+}
+.open-table th {
+  border-bottom: #111 solid 1px;
+  margin: 0;
+  padding: 5px;
+  border-collapse: collapse;
+  text-align: left;
+}
+.open-table td {
+  border-bottom: #000 dashed 1px;
+  margin: 0;
+  padding: 5px;
+  border-collapse: collapse;
+}
+
+.button-container {
+  margin-top: 30px; 
+  display: flex;
+  justify-content: center; 
+  gap: 20px; 
+}
+
+.landing-logo {
+  margin-bottom: 40px;
+}

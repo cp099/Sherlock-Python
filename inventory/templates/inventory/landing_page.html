@@ -1,0 +1,30 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Welcome to Sherlock</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter+Display:wght@100..900&family=Source+Serif+4:ital,wght@0,200..900;1,200..900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'inventory/css/main.css' %}">
+</head>
+<body>
+
+    <div class="page-centered">
+        <!-- Change 1: Removed the "front-page" class to allow content to be wider -->
+        <div class="centered-content">
+            
+            <!-- Change 2: Added a "landing-logo" class for styling and increased width -->
+            <img src="{% static 'inventory/images/logo.svg' %}" alt="Sherlock Logo" width="600" class="landing-logo">
+            
+            <div class="button-container">
+                <a href="{% url 'login' %}" class="link-button">Login</a>
+                <a href="{% url 'signup' %}" class="link-button">Sign Up</a>
+            </div>
+
+        </div>
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,36 @@
+{% extends "inventory/base.html" %}
+
+{% block content %}
+    <p><a href="{% url 'inventory:space_list' section.section_code %}">< See all spaces in "{{ section.name }}"</a></p>
+
+    <h1>{{ space.name }}</h1>
+
+    <div>
+        {{ space.generate_qr_code_svg|safe }}
+    </div>
+
+    <table>
+        <tr><th>Parameter</th><th>Value</th></tr>
+        <tr><td><i>Space Code</i></td><td>{{ space.space_code }}</td></tr>
+        <tr><td><i>Name</i></td><td>{{ space.name }}</td></tr>
+        <tr><td><i>Description</i></td><td>{{ space.description }}</td></tr>
+        <tr><td><i>Created at</i></td><td>{{ space.created_at }}</td></tr>
+        <tr><td><i>Last updated at</i></td><td>{{ space.updated_at }}</td></tr>
+    </table>
+
+    <a href="{% url 'inventory:space_update' section.section_code space.space_code %}">Edit</a> | 
+    <a href="{% url 'inventory:item_list' section.section_code space.space_code %}">View Items ></a>
+
+    <form action="{% url 'inventory:space_add_to_queue' section.section_code space.space_code %}" method="post" style="display: inline;">
+        {% csrf_token %}
+        <button type="submit">Add to print queue</button>
+    </form>
+
+    <h2 style="color: red;">Delete this space</h2>
+    <p>If you no longer use this space, you can choose to delete it. All inventory items associated with this space will be destroyed. This action is irreversible.</p>
+
+    <form action="{% url 'inventory:space_delete' section.section_code space.space_code %}" method="post">
+        {% csrf_token %}
+        <button type="submit" style="background-color: red; color: white;" onclick="return confirm('Are you sure you want to delete this space? This action is irreversible.');">I understand the consequences, delete this space</button>
+    </form>
+{% endblock %}

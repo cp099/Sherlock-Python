@@ -1,0 +1,43 @@
+{% extends "inventory/base.html" %}
+{% load inventory_extras %} {# Load our custom highlight filter #}
+
+{% block content %}
+    <h1>Search</h1>
+
+    <form action="{% url 'inventory:search' %}" method="get">
+        <input type="text" name="query" placeholder="Search for something..." value="{{ query|default:'' }}">
+        <button type="submit">Go</button>
+        <a href="{% url 'inventory:search' %}">Clear</a>
+    </form>
+
+    {% if search_entries is not None %}
+        {% if not search_entries %}
+            <p>Sorry, Sherlock couldn't find anything that matched your query. Please try again.</p>
+        {% else %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Type</th>
+                        <th>Last Updated</th>
+                        <th>Created</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for entry in search_entries %}
+                    <tr>
+                        <td>
+                            <a href="{{ entry.url }}">
+                                <h3>{{ entry.name|highlight:query }}</h3>
+                            </a>
+                        </td>
+                        <td>{{ entry.content_type.model|title }}</td>
+                        <td>{{ entry.searchable_object.updated_at }}</td>
+                        <td>{{ entry.searchable_object.created_at }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% endif %}
+    {% endif %}
+{% endblock %}

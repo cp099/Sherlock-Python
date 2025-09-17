@@ -1,0 +1,47 @@
+{% extends "inventory/base.html" %}
+
+{% block content %}
+    <h1>Print Queue</h1>
+
+    {% if not queue.items.all %}
+        <p>No items in print queue.</p>
+    {% else %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Item</th>
+                    <th>Name</th>
+                    <th>Quantity</th>
+                    <th>Delete</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in queue.items.all %}
+                <tr>
+                    <td>{{ item.print_content|safe }}</td>
+                    <td><b>{{ item.name }}</b></td>
+                    <td>
+                        <form action="{% url 'inventory:print_item_change_quantity' item.id %}" method="post">
+                            {% csrf_token %}
+                            <input type="number" name="quantity" min="1" value="{{ item.quantity }}" onchange="this.form.submit()">
+                        </form>
+                    </td>
+                    <td>
+                        <form action="{% url 'inventory:print_item_delete' item.id %}" method="post">
+                            {% csrf_token %}
+                            <button type="submit" onclick="return confirm('Are you sure you want to delete this item?');">Delete</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <br>
+        <a href="{% url 'inventory:print_shop_index' %}">Go to Print Shop</a>
+        <br><br>
+        <form action="{% url 'inventory:clear_print_queue' %}" method="post">
+            {% csrf_token %}
+            <button type="submit" onclick="return confirm('Are you sure you want to clear the entire queue?');" style="background-color: red; color: white;">Clear Entire Queue</button>
+        </form>
+    {% endif %}
+{% endblock %}

@@ -1,0 +1,17 @@
+{% extends "inventory/base.html" %}
+
+{% block content %}
+    {% if space %}
+        <p><a href="{% url 'inventory:space_detail' section.section_code space.space_code %}">< Go back to "{{ space.name }}"</a></p>
+        <h1>Edit <i>"{{ space.name }}"</i></h1>
+    {% else %}
+        <p><a href="{% url 'inventory:space_list' section.section_code %}">< See all spaces in "{{ section.name }}"</a></p>
+        <h1>Create a New Space</h1>
+    {% endif %}
+
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Submit</button>
+    </form>
+{% endblock %}

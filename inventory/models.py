@@ -15,11 +15,18 @@ from barcode.writer import SVGWriter
 import qrcode
 import qrcode.image.svg
 
+class TimeStampedModel(models.Model):
+    created_at = models.DateTimeField(auto_now_add=True, null=True)
+    updated_at = models.DateTimeField(auto_now=True, null=True)
+
+    class Meta:
+        abstract = True # This makes it a reusable base, not a real table
+
 # ==============================================================================
 # 1. SECTION MODEL
 # Replicates your Section model for high-level locations (e.g., "Main Lab").
 # ==============================================================================
-class Section(models.Model):
+class Section(TimeStampedModel):
     section_code = models.PositiveIntegerField(
         unique=True,
         validators=[
@@ -60,7 +67,7 @@ class Section(models.Model):
 # 2. SPACE MODEL
 # Replicates your Space model for specific locations within a Section (e.g., "Workbench A").
 # ==============================================================================
-class Space(models.Model):
+class Space(TimeStampedModel):
     section = models.ForeignKey(Section, on_delete=models.CASCADE, related_name='spaces')
     space_code = models.PositiveIntegerField(
         validators=[
@@ -99,12 +106,11 @@ class Space(models.Model):
         img = qrcode.make(qr_data, image_factory=qrcode.image.svg.SvgPathImage)
         return img.to_string(encoding='unicode')
 
-
 # ==============================================================================
 # 3. ITEM MODEL
 # Replicates your core Item model for inventory.
 # ==============================================================================
-class Item(models.Model):
+class Item(TimeStampedModel):
     space = models.ForeignKey(Space, on_delete=models.CASCADE, related_name='items')
     item_code = models.PositiveIntegerField(
         validators=[
@@ -147,7 +153,9 @@ class Item(models.Model):
 
         # The python-barcode library automatically calculates the 13th checksum digit
         ean_barcode = EAN(barcode_value, writer=SVGWriter())
-        return ean_barcode.render()
+        
+        # Decode the bytes into a UTF-8 string before returning
+        return ean_barcode.render().decode('utf-8')
 
 
 # ==============================================================================
