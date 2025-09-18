@@ -2,42 +2,49 @@
 
 {% block content %}
     <p><a href="{% url 'inventory:item_list' section.section_code space.space_code %}">< See all items in "{{ space.name }}"</a></p>
-
     <h1>{{ item.name }}</h1>
-    
-    <h3>Large Label</h3>
-    <div>{{ item.generate_barcode_svg|safe }}</div>
-    
-    <h3>Small Label</h3>
-    <div>{{ item.generate_barcode_svg|safe }}</div>
 
+    <div class="detail-container">
+        <div class="label-card">
+            <h3>Large Label</h3>
+            {{ item.generate_barcode_svg|safe }}
+        </div>
+        <div class="label-card">
+            <h3>Small Label</h3>
+            {{ item.generate_barcode_svg|safe }}
+        </div>
 
-    <table>
-        <tr><th>Parameter</th><th>Value</th></tr>
-        <tr><td><i>Item Code</i></td><td>{{ item.item_code }}</td></tr>
-        <tr><td><i>Name</i></td><td>{{ item.name }}</td></tr>
-        <tr><td><i>Description</i></td><td>{{ item.description }}</td></tr>
-        <tr><td><i>Quantity</i></td><td>{{ item.quantity }}</td></tr>
-        <tr><td><i>Created at</i></td><td>{{ item.created_at }}</td></tr>
-        <tr><td><i>Last updated at</i></td><td>{{ item.updated_at }}</td></tr>
-    </table>
+        <table class="open-table">
+            <thead>
+                <tr><th>Parameter</th><th>Value</th></tr>
+            </thead>
+            <tbody>
+                <tr><td><i>Item Code</i></td><td>{{ item.item_code }}</td></tr>
+                <tr><td><i>Name</i></td><td>{{ item.name }}</td></tr>
+                <tr><td><i>Description</i></td><td>{{ item.description|default:"--" }}</td></tr>
+                <tr><td><i>Quantity</i></td><td>{{ item.quantity }}</td></tr>
+                <tr><td><i>Created at</i></td><td>{{ item.created_at }}</td></tr>
+                <tr><td><i>Last updated at</i></td><td>{{ item.updated_at }}</td></tr>
+            </tbody>
+        </table>
 
-    <a href="{% url 'inventory:item_update' section.section_code space.space_code item.item_code %}">Edit</a>
+        <div class="action-area">
+            <a href="{% url 'inventory:item_update' section.section_code space.space_code item.item_code %}">Edit</a>
+            <form action="{% url 'inventory:item_add_small_to_queue' section.section_code space.space_code item.item_code %}" method="post">
+                {% csrf_token %}
+                <button type="submit">Add small label to print queue</button>
+            </form>
+            <form action="{% url 'inventory:item_add_large_to_queue' section.section_code space.space_code item.item_code %}" method="post">
+                {% csrf_token %}
+                <button type="submit">Add large label to print queue</button>
+            </form>
+        </div>
 
-    <form action="{% url 'inventory:item_add_small_to_queue' section.section_code space.space_code item.item_code %}" method="post" style="display: inline;">
-        {% csrf_token %}
-        <button type="submit">Add small label to print queue</button>
-    </form>
-
-    <form action="{% url 'inventory:item_add_large_to_queue' section.section_code space.space_code item.item_code %}" method="post" style="display: inline;">
-        {% csrf_token %}
-        <button type="submit">Add large label to print queue</button>
-    </form>
-
-    <h2 style="color: red;">Delete this Item</h2>
-    <p>This action is irreversible.</p>
-    <form action="{% url 'inventory:item_delete' section.section_code space.space_code item.item_code %}" method="post">
-        {% csrf_token %}
-        <button type="submit" style="background-color: red; color: white;" onclick="return confirm('Are you sure you want to delete this item?');">I understand the consequences, delete this item</button>
-    </form>
+        <h2 class="destructive">Delete this Item</h2>
+        <p>This action is irreversible.</p>
+        <form action="{% url 'inventory:item_delete' section.section_code space.space_code item.item_code %}" method="post">
+            {% csrf_token %}
+            <button type="submit" class="destructive-background" onclick="return confirm('Are you sure you want to delete this item?');">I understand the consequences, delete this item</button>
+        </form>
+    </div>
 {% endblock %}

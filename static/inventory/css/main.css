@@ -284,3 +284,76 @@ main {
 .landing-logo {
   margin-bottom: 40px;
 }
+
+/* =================================
+   NEW STYLES FOR MODERN UI
+   ================================= */
+
+/* Card style for displaying labels (QR/Barcode) */
+.label-card {
+  background-color: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  display: inline-block;
+  margin-bottom: 2em;
+}
+
+/* New clean table for detail pages (Parameter/Value) */
+.open-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 1.5em;
+}
+.open-table th {
+  text-align: left;
+  padding: 8px 5px;
+  border-bottom: 1px solid #111;
+  font-family: "Inter Display", sans-serif;
+  font-weight: 700;
+}
+.open-table td {
+  padding: 8px 5px;
+  border-bottom: 1px dashed #000; /* The key dashed line */
+}
+.open-table tr:last-child td {
+  border-bottom: none; /* No line under the last item */
+}
+
+/* New clean table for list pages (Sections/Spaces/Items) */
+.list-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.list-table th {
+  text-align: left;
+  padding: 12px 8px;
+  border-bottom: 2px solid #3B3B3B;
+  font-family: "Inter Display", sans-serif;
+  font-weight: 700;
+}
+.list-table td {
+  padding: 12px 8px;
+  border-bottom: 1px solid #f0f0f0;
+}
+.list-table tr:hover {
+  background-color: #f9f9f9;
+}
+
+/* Container for action buttons on detail pages */
+.action-area {
+  display: flex;
+  align-items: center;
+  gap: 20px; /* Space between Edit link and button */
+  margin-top: 1.5em;
+  margin-bottom: 2em;
+}
+.action-area a {
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.detail-container {
+  max-width: 450px; 
+}

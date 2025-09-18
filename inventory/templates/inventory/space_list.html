@@ -3,30 +3,32 @@
 {% block content %}
     <p><a href="{% url 'inventory:section_detail' section.section_code %}">< Go back to "{{ section.name }}"</a></p>
 
-    <h1>Spaces under <i>"{{ section.name }}"</i></h1>
-    
-    {% if not spaces %}
-        <p>You have not created any spaces under <i>"{{ section.name }}"</i> yet.</p>
-    {% else %}
-        <table>
-            <thead>
-                <tr>
-                    <th>Code</th>
-                    <th>Name</th>
-                    <th>Description</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for space in spaces %}
-                <tr>
-                    <td>{{ space.space_code }}</td>
-                    <td><a href="{% url 'inventory:space_detail' section.section_code space.space_code %}">{{ space.name }}</a></td>
-                    <td>{{ space.description }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    {% endif %}
+    <div class="detail-container">
+        <h1>Spaces under <i>"{{ section.name }}"</i></h1>
+        
+        {% if not spaces %}
+            <p>You have not created any spaces under <i>"{{ section.name }}"</i> yet.</p>
+        {% else %}
+            <table class="open-table">
+                <thead>
+                    <tr>
+                        <th>Code</th>
+                        <th>Name</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for space in spaces %}
+                    <tr>
+                        <td>{{ space.space_code }}</td>
+                        <td><a href="{% url 'inventory:space_detail' section.section_code space.space_code %}">{{ space.name }}</a></td>
+                        <td>{{ space.description }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% endif %}
 
-    <p><a href="{% url 'inventory:space_create' section.section_code %}">Create a new space</a></p>
+        <p><a href="{% url 'inventory:space_create' section.section_code %}">Create a new space</a></p>
+    </div>
 {% endblock %}

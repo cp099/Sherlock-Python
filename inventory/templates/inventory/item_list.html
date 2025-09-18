@@ -3,32 +3,34 @@
 {% block content %}
     <p><a href="{% url 'inventory:space_detail' section.section_code space.space_code %}">< Go back to "{{ space.name }}"</a></p>
 
-    <h1>Items in <i>"{{ space.name }}"</i></h1>
+    <div class="detail-container">
+        <h1>Items in <i>"{{ space.name }}"</i></h1>
 
-    {% if not items %}
-        <p>You have not added any items to <i>"{{ space.name }}"</i> yet.</p>
-    {% else %}
-        <table>
-            <thead>
-                <tr>
-                    <th>Code</th>
-                    <th>Name</th>
-                    <th>Description</th>
-                    <th>Quantity</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for item in items %}
-                <tr>
-                    <td>{{ item.item_code }}</td>
-                    <td><a href="{% url 'inventory:item_detail' section.section_code space.space_code item.item_code %}">{{ item.name }}</a></td>
-                    <td>{{ item.description }}</td>
-                    <td>{{ item.quantity }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    {% endif %}
+        {% if not items %}
+            <p>You have not added any items to <i>"{{ space.name }}"</i> yet.</p>
+        {% else %}
+            <table class="open-table">
+                <thead>
+                    <tr>
+                        <th>Code</th>
+                        <th>Name</th>
+                        <th>Description</th>
+                        <th>Quantity</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in items %}
+                    <tr>
+                        <td>{{ item.item_code }}</td>
+                        <td><a href="{% url 'inventory:item_detail' section.section_code space.space_code item.item_code %}">{{ item.name }}</a></td>
+                        <td>{{ item.description }}</td>
+                        <td>{{ item.quantity }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% endif %}
 
-    <p><a href="{% url 'inventory:item_create' section.section_code space.space_code %}">Add an item</a></p>
+        <p><a href="{% url 'inventory:item_create' section.section_code space.space_code %}">Add an item</a></p>
+    </div>
 {% endblock %}

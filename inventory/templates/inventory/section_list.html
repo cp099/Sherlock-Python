@@ -1,31 +1,33 @@
 {% extends "inventory/base.html" %}
 
 {% block content %}
-    <h1>Storage Sections</h1>
-    <p>Use sections to group storage spaces that are physically close to each other.</p>
+    <div class="detail-container">
+        <h1>Storage Sections</h1>
+        <p>Use sections to group storage spaces that are physically close to each other.</p>
 
-    {% if not sections %}
-        <p>You have not created any sections yet.</p>
-    {% else %}
-        <table>
-            <thead>
-                <tr>
-                    <th>Code</th>
-                    <th>Name</th>
-                    <th>Description</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for section in sections %}
-                <tr>
-                    <td>{{ section.section_code }}</td>
-                    <td><a href="{% url 'inventory:section_detail' section.section_code %}">{{ section.name }}</a></td>
-                    <td>{{ section.description }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    {% endif %}
-    
-    <p><a href="{% url 'inventory:section_create' %}">Create a new section</a></p>
+        {% if not sections %}
+            <p>You have not created any sections yet.</p>
+        {% else %}
+            <table class="open-table">
+                <thead>
+                    <tr>
+                        <th>Code</th>
+                        <th>Name</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for section in sections %}
+                    <tr>
+                        <td>{{ section.section_code }}</td>
+                        <td><a href="{% url 'inventory:section_detail' section.section_code %}">{{ section.name }}</a></td>
+                        <td>{{ section.description }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% endif %}
+        
+        <p><a href="{% url 'inventory:section_create' %}">Create a new section</a></p>
+    </div>
 {% endblock %}
