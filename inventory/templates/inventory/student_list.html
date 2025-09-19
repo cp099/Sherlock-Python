@@ -1,0 +1,35 @@
+{% extends "inventory/base.html" %}
+
+{% block content %}
+    <div class="detail-container">
+        <h1>Student Records</h1>
+        <p>A list of all students registered in the system.</p>
+
+        {% if not students %}
+            <p>You have not added any student records yet.</p>
+        {% else %}
+            <table class="open-table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Admission Number</th>
+                        <th>Class</th>
+                        <th>Section</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for student in students %}
+                    <tr>
+                        <td><a href="{% url 'inventory:student_detail' student.id %}">{{ student.name }}</a></td>
+                        <td>{{ student.admission_number }}</td>
+                        <td>{{ student.student_class }}</td>
+                        <td>{{ student.section }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% endif %}
+        
+        <p><a href="{% url 'inventory:student_create' %}">Add a new student</a></p>
+    </div>
+{% endblock %}

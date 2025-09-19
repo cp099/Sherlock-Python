@@ -156,6 +156,11 @@ class Item(TimeStampedModel):
         
         # Decode the bytes into a UTF-8 string before returning
         return ean_barcode.render().decode('utf-8')
+    
+    @property
+    def is_on_loan(self):
+        """Returns the CheckoutLog if the item is currently on loan, otherwise None."""
+        return self.checkout_logs.filter(return_date__isnull=True).first()
 
 
 # ==============================================================================
@@ -201,3 +206,39 @@ class SearchEntry(models.Model):
 
     def __str__(self):
         return f"Search entry for '{self.name}'"
+    
+
+# ==============================================================================
+# PHASE 2: LENDING SYSTEM MODELS
+# ==============================================================================
+
+class Student(models.Model):
+    """A record for a student who can borrow items."""
+    admission_number = models.CharField(max_length=50, unique=True, help_text="Unique student admission or ID number.")
+    name = models.CharField(max_length=100)
+    student_class = models.CharField(max_length=50, verbose_name="Class")
+    section = models.CharField(max_length=50)
+
+    def __str__(self):
+        return f"{self.name} ({self.admission_number})"
+    
+    def save(self, *args, **kwargs):
+        # Convert fields to uppercase before saving
+        self.name = self.name.upper()
+        self.admission_number = self.admission_number.upper()
+        self.student_class = self.student_class.upper()
+        self.section = self.section.upper()
+        
+        # Call the original save method to save the object to the database
+        super().save(*args, **kwargs)
+
+class CheckoutLog(models.Model):
+    """A record of an item being checked out by a student."""
+    item = models.ForeignKey(Item, on_delete=models.CASCADE, related_name="checkout_logs")
+    student = models.ForeignKey(Student, on_delete=models.PROTECT, related_name="checkout_logs")
+    checkout_date = models.DateTimeField(auto_now_add=True)
+    return_date = models.DateTimeField(null=True, blank=True, help_text="This is set when the item is returned.")
+
+    def __str__(self):
+        status = "Returned" if self.return_date else "On Loan"
+        return f"{self.item.name} to {self.student.name} ({status})"

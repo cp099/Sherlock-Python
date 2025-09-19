@@ -1,0 +1,19 @@
+{% extends "inventory/base.html" %}
+
+{% block content %}
+    <div class="detail-container">
+        {% if student %}
+            <p><a href="{% url 'inventory:student_detail' student.id %}">< Go back to "{{ student.name }}"</a></p>
+            <h1>Edit Student Record</h1>
+        {% else %}
+            <p><a href="{% url 'inventory:student_list' %}">< See all students</a></p>
+            <h1>Add a New Student</h1>
+        {% endif %}
+
+        <form method="post">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit">Submit</button>
+        </form>
+    </div>
+{% endblock %}

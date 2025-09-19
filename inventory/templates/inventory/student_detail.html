@@ -1,0 +1,43 @@
+{% extends "inventory/base.html" %}
+
+{% block content %}
+    <p><a href="{% url 'inventory:student_list' %}">< See all students</a></p>
+    <h1>{{ student.name }}</h1>
+
+    <div class="detail-container">
+        <table class="open-table">
+            <thead>
+                <tr><th>Parameter</th><th>Value</th></tr>
+            </thead>
+            <tbody>
+                <tr><td>Name</td><td>{{ student.name }}</td></tr>
+                <tr><td>Admission Number</td><td>{{ student.admission_number }}</td></tr>
+                <tr><td>Class</td><td>{{ student.student_class }}</td></tr>
+                <tr><td>Section</td><td>{{ student.section }}</td></tr>
+            </tbody>
+        </table>
+
+        <div class="action-area">
+            <a href="{% url 'inventory:student_update' student.id %}">Edit Student Record</a>
+        </div>
+        
+        <!-- Loan History will be added here in Phase C -->
+        <h2>Loan History</h2>
+        <p>This section will show all items borrowed by this student.</p>
+
+        <!-- === NEW DELETE SECTION ADDED HERE === -->
+        <h2 class="destructive">Delete this student</h2>
+        <p>
+            If this student record is no longer needed, you can delete it.
+            <strong>Important:</strong> You can only delete a student if they have no checkout history.
+            If they have ever borrowed an item, their record must be kept for archival purposes.
+        </p>
+
+        <form action="{% url 'inventory:student_delete' student.id %}" method="post">
+            {% csrf_token %}
+            <button type="submit" class="destructive-background" onclick="return confirm('Are you sure you want to delete this student record? This action is irreversible.');">
+                I understand, delete this student
+            </button>
+        </form>
+    </div>
+{% endblock %}

@@ -41,4 +41,11 @@ urlpatterns = [
     path('sections/<int:section_code>/spaces/<int:space_code>/items/<int:item_code>/delete/', views.item_delete, name='item_delete'),
     path('sections/<int:section_code>/spaces/<int:space_code>/items/<int:item_code>/add-small-to-queue/', views.item_add_small_to_queue, name='item_add_small_to_queue'),
     path('sections/<int:section_code>/spaces/<int:space_code>/items/<int:item_code>/add-large-to-queue/', views.item_add_large_to_queue, name='item_add_large_to_queue'),
+
+    # Student Routes
+    path('students/', views.student_list, name='student_list'),
+    path('students/new/', views.student_create, name='student_create'),
+    path('students/<int:student_id>/', views.student_detail, name='student_detail'),
+    path('students/<int:student_id>/edit/', views.student_update, name='student_update'),
+    path('students/<int:student_id>/delete/', views.student_delete, name='student_delete'),
 ]

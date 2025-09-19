@@ -4,6 +4,7 @@ from django import forms
 from .models import Section
 from .models import Space
 from .models import Item
+from .models import Student
 
 class SectionForm(forms.ModelForm):
     class Meta:
@@ -39,4 +40,13 @@ class ItemForm(forms.ModelForm):
         }
         widgets = {
             'description': forms.Textarea(attrs={'rows': 4}),
+        }
+
+class StudentForm(forms.ModelForm):
+    class Meta:
+        model = Student
+        fields = ['admission_number', 'name', 'student_class', 'section']
+        labels = {
+            'admission_number': 'Admission Number',
+            'student_class': 'Class',
         }

@@ -9,8 +9,8 @@ from datetime import datetime
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import login
 
-from .models import Section, Space, Item, PrintQueue, PrintQueueItem, SearchEntry
-from .forms import SectionForm, SpaceForm, ItemForm
+from .models import Section, Space, Item, PrintQueue, PrintQueueItem, SearchEntry, Student
+from .forms import SectionForm, SpaceForm, ItemForm, StudentForm
 
 import hashlib
 import base64
@@ -277,6 +277,56 @@ def item_add_large_to_queue(request, section_code, space_code, item_code):
         item = get_object_or_404(Item, space=space, item_code=item_code)
         _add_item_to_queue(request, item, 'large')
     return redirect('inventory:item_detail', section_code=section_code, space_code=space_code, item_code=item_code)
+
+# ==================================
+# NEW STUDENT VIEWS (CRUD)
+# ==================================
+@login_required
+def student_list(request):
+    students = Student.objects.all().order_by('name')
+    context = {'students': students}
+    return render(request, 'inventory/student_list.html', context)
+
+@login_required
+def student_detail(request, student_id):
+    student = get_object_or_404(Student, id=student_id)
+    # We will enhance this later with loan history
+    context = {'student': student}
+    return render(request, 'inventory/student_detail.html', context)
+
+@login_required
+def student_create(request):
+    if request.method == 'POST':
+        form = StudentForm(request.POST)
+        if form.is_valid():
+            student = form.save()
+            return redirect('inventory:student_detail', student_id=student.id)
+    else:
+        form = StudentForm()
+    context = {'form': form}
+    return render(request, 'inventory/student_form.html', context)
+
+@login_required
+def student_update(request, student_id):
+    student = get_object_or_404(Student, id=student_id)
+    if request.method == 'POST':
+        form = StudentForm(request.POST, instance=student)
+        if form.is_valid():
+            form.save()
+            return redirect('inventory:student_detail', student_id=student.id)
+    else:
+        form = StudentForm(instance=student)
+    context = {'form': form, 'student': student}
+    return render(request, 'inventory/student_form.html', context)
+
+@login_required
+def student_delete(request, student_id):
+    student = get_object_or_404(Student, id=student_id)
+    if request.method == 'POST':
+        student.delete()
+        return redirect('inventory:student_list')
+    # If not POST, just redirect back to the detail page.
+    return redirect('inventory:student_detail', student_id=student.id)
 
 # ==================================
 # Print Shop & Queue Views
