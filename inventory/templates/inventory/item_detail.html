@@ -6,11 +6,7 @@
 
     <div class="detail-container">
         <div class="label-card">
-            <h3>Large Label</h3>
-            {{ item.generate_barcode_svg|safe }}
-        </div>
-        <div class="label-card">
-            <h3>Small Label</h3>
+            <h3>Item Barcode</h3>
             {{ item.generate_barcode_svg|safe }}
         </div>
 
@@ -22,7 +18,13 @@
                 <tr><td><i>Item Code</i></td><td>{{ item.item_code }}</td></tr>
                 <tr><td><i>Name</i></td><td>{{ item.name }}</td></tr>
                 <tr><td><i>Description</i></td><td>{{ item.description|default:"--" }}</td></tr>
-                <tr><td><i>Quantity</i></td><td>{{ item.quantity }}</td></tr>
+                
+                <!-- Updated Quantity Section -->
+                <tr style="font-weight: bold;"><td>Total in Inventory</td><td>{{ item.quantity }}</td></tr>
+                <tr><td>On Loan</td><td>{{ item.checked_out_quantity }}</td></tr>
+                <!-- The "Buffer Stock" row has been removed -->
+                <tr style="font-weight: bold;"><td>Available to Lend</td><td>{{ item.available_quantity }}</td></tr>
+                
                 <tr><td><i>Created at</i></td><td>{{ item.created_at }}</td></tr>
                 <tr><td><i>Last updated at</i></td><td>{{ item.updated_at }}</td></tr>
             </tbody>
@@ -40,6 +42,7 @@
             </form>
         </div>
 
+        <!-- ... (Delete section remains unchanged) ... -->
         <h2 class="destructive">Delete this Item</h2>
         <p>This action is irreversible.</p>
         <form action="{% url 'inventory:item_delete' section.section_code space.space_code item.item_code %}" method="post">

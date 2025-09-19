@@ -1,0 +1,40 @@
+{% extends "inventory/base.html" %}
+
+{% block content %}
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h1>Items Currently On Loan</h1>
+        <a href="{% url 'inventory:checkout_find_student' %}" class="link-button">Go to Checkout Terminal</a>
+    </div>
+    <p>A list of all items that are currently checked out by students.</p>
+
+    {% if not on_loan_logs %}
+        <p>No items are currently on loan. Great!</p>
+    {% else %}
+        <table class="open-table">
+            <thead>
+                <tr>
+                    <th>Item</th>
+                    <th>Qty</th>
+                    <th>Student</th>
+                    <th>Checked Out</th>
+                    <th>Due Date</th>
+                    <th></th> {# Column for the check-in button #}
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in on_loan_logs %}
+                <tr>
+                    <td><a href="{{ log.item.get_absolute_url }}">{{ log.item.name }}</a></td>
+                    <td>{{ log.quantity_still_on_loan }}</td>
+                    <td><a href="{% url 'inventory:student_detail' log.student.id %}">{{ log.student.name }}</a></td>
+                    <td>{{ log.checkout_date|date:"d M Y" }}</td>
+                    <td>{{ log.due_date|date:"d M Y" }}</td>
+                    <td>
+                        <a href="{% url 'inventory:check_in_page' log.id %}" class="link-button" style="padding: 8px 12px; font-size: 14px;">Check In</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+{% endblock %}

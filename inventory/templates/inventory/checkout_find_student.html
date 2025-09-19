@@ -1,0 +1,40 @@
+{% extends "inventory/base.html" %}
+
+{% block content %}
+    <!-- The surrounding "detail-container" div has been REMOVED to allow full width -->
+    
+    <h1>Checkout Terminal</h1>
+    <p>Enter a student's name or admission number to begin a checkout session.</p>
+
+    <div>
+        <input 
+            type="search" 
+            name="query" 
+            placeholder="Search by Name or Admission Number..." 
+            autofocus
+            class="student-search-input"
+            
+            hx-get="{% url 'inventory:live_student_search' %}"
+            hx-trigger="keyup changed delay:200ms"
+            hx-target="#student-results-body"
+            hx-swap="innerHTML"
+            hx-indicator=".htmx-indicator">
+    </div>
+
+    <!-- The permanent table structure with UPDATED column order -->
+    <table class="open-table" style="margin-top: 1em;">
+        <thead>
+            <tr>
+                <th>Admission Number</th>
+                <th>Name</th>
+                <th>Class</th>
+                <th>Section</th> <!-- New Column -->
+                <th></th>      <!-- Column for the button -->
+            </tr>
+        </thead>
+        <!-- The results will be loaded into this tbody -->
+        <tbody id="student-results-body">
+            <!-- Initially empty -->
+        </tbody>
+    </table>
+{% endblock %}

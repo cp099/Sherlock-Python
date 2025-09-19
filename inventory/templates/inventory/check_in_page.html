@@ -1,0 +1,30 @@
+{% extends "inventory/base.html" %}
+
+{% block content %}
+    <p><a href="{% url 'inventory:on_loan_dashboard' %}">< Back to On Loan Dashboard</a></p>
+    <h1>Check In Item</h1>
+
+    <div class="detail-container">
+        <h3>Loan Details</h3>
+        <table class="open-table">
+            <tbody>
+                <tr><td>Item</td><td><a href="{{ log_entry.item.get_absolute_url }}">{{ log_entry.item.name }}</a></td></tr>
+                <tr><td>Student</td><td><a href="{% url 'inventory:student_detail' log_entry.student.id %}">{{ log_entry.student.name }}</a></td></tr>
+                <tr><td>Date Checked Out</td><td>{{ log_entry.checkout_date }}</td></tr>
+                <tr><td>Date Due</td><td>{{ log_entry.due_date }}</td></tr>
+                <tr style="font-weight: bold;"><td>Quantity Originally Loaned</td><td>{{ log_entry.quantity }}</td></tr>
+                <tr style="font-weight: bold;"><td>Quantity Still on Loan</td><td>{{ quantity_still_on_loan }}</td></tr>
+            </tbody>
+        </table>
+
+        <hr style="margin: 2em 0;">
+
+        <h3>Process a Return</h3>
+        <form action="{% url 'inventory:process_check_in' log_entry.id %}" method="post">
+            {% csrf_token %}
+            <label for="quantity_returned">Quantity to Return:</label>
+            <input type="number" name="quantity_returned" value="{{ quantity_still_on_loan }}" min="1" max="{{ quantity_still_on_loan }}" autofocus required>
+            <button type="submit">Confirm Return</button>
+        </form>
+    </div>
+{% endblock %}

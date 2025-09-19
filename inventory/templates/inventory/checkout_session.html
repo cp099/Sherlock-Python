@@ -1,0 +1,86 @@
+{% extends "inventory/base.html" %}
+
+{% block content %}
+    <div class="detail-container">
+        <h3>Checkout for: <a href="{% url 'inventory:student_detail' student.id %}">{{ student.name }}</a></h3>
+        <hr>
+
+        <h4>1. Scan or Enter Item Code</h4>
+        <form method="post">
+            {% csrf_token %}
+            <input type="text" name="barcode" placeholder="Scan item barcode..." autofocus>
+            <input type="number" name="quantity" value="1" min="1" style="width: 60px;">
+            <button type="submit" name="add_item">Add Item</button>
+        </form>
+
+        <hr>
+        
+        {% if items_in_session %}
+            <h4>2. Items to be Checked Out:</h4>
+            <table class="open-table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Qty</th>
+                        <th>Available</th>
+                        <th>Location</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for detail in items_in_session %}
+                    <tr>
+                        <td>{{ detail.item.name }}</td>
+                        <td>
+                            <!-- === THIS IS THE UPGRADED PART === -->
+                            <form action="{% url 'inventory:checkout_update_item_quantity' student.id detail.item.id %}" method="post">
+                                {% csrf_token %}
+                                <input 
+                                    type="number" 
+                                    name="quantity" 
+                                    value="{{ detail.quantity }}" 
+                                    min="1" 
+                                    style="width: 60px;"
+                                    onchange="this.form.submit()">
+                            </form>
+                        </td>
+                        <td>{{ detail.item.available_quantity }}</td>
+                        <td>{{ detail.item.space.name }} / {{ detail.item.space.section.name }}</td>
+                        <td>
+                            <form action="{% url 'inventory:checkout_remove_item' student.id detail.item.id %}" method="post">
+                                {% csrf_token %}
+                                <button type="submit" class="destructive-background">Remove</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <hr style="margin-top: 2em;">
+
+            <h4>3. Set Return Date</h4>
+            <form method="post">
+                {% csrf_token %}
+                <div>
+                    <input type="radio" id="due_days" name="due_date_option" value="days" checked>
+                    <label for="due_days">Return in</label>
+                    <input type="number" name="days_to_return" value="7" min="1" style="width: 60px;">
+                    <label for="due_days">days</label>
+                </div>
+                <div style="margin-top: 10px;">
+                    <input type="radio" id="due_date" name="due_date_option" value="date">
+                    <label for="due_date">Return on specific date:</label>
+                    <input type="date" name="return_date">
+                </div>
+
+                <button type="submit" name="complete_checkout" style="font-size: 20px; padding: 15px 30px; margin-top: 20px;">
+                    Complete Checkout ({{ total_units_in_session }} Units)
+                </button>
+            </form>
+        {% else %}
+            <p>No items added yet. Scan an item to begin.</p>
+        {% endif %}
+
+    </div>
+{% endblock %}

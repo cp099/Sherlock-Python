@@ -42,10 +42,24 @@ urlpatterns = [
     path('sections/<int:section_code>/spaces/<int:space_code>/items/<int:item_code>/add-small-to-queue/', views.item_add_small_to_queue, name='item_add_small_to_queue'),
     path('sections/<int:section_code>/spaces/<int:space_code>/items/<int:item_code>/add-large-to-queue/', views.item_add_large_to_queue, name='item_add_large_to_queue'),
 
+    # Live Student Search (for HTMX)
+    path('live-student-search/', views.live_student_search, name='live_student_search'),
+
     # Student Routes
     path('students/', views.student_list, name='student_list'),
     path('students/new/', views.student_create, name='student_create'),
     path('students/<int:student_id>/', views.student_detail, name='student_detail'),
     path('students/<int:student_id>/edit/', views.student_update, name='student_update'),
     path('students/<int:student_id>/delete/', views.student_delete, name='student_delete'),
+
+    # Checkout Log Routes
+    path('on-loan/', views.on_loan_dashboard, name='on_loan_dashboard'),
+    path('check-in/<int:log_id>/', views.check_in_page, name='check_in_page'),
+    path('check-in/<int:log_id>/process/', views.process_check_in, name='process_check_in'),
+
+    # Checkout Routes
+    path('checkout/', views.checkout_find_student, name='checkout_find_student'),
+    path('checkout/session/<int:student_id>/', views.checkout_session, name='checkout_session'),
+    path('checkout/session/<int:student_id>/remove/<int:item_id>/', views.checkout_remove_item, name='checkout_remove_item'),
+    path('checkout/session/<int:student_id>/update/<int:item_id>/', views.checkout_update_item_quantity, name='checkout_update_item_quantity'),
 ]

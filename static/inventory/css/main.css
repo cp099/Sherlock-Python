@@ -357,3 +357,31 @@ main {
 .detail-container {
   max-width: 450px; 
 }
+
+.student-search-input {
+  width: 400px; 
+  padding: 8px 12px;
+  font-size: 16px;
+}
+
+.filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin: 1.5em 0;
+}
+
+.filter-bar label {
+  font-family: 'Source Serif', serif; 
+  font-weight: 700;                
+  font-size: 16px;
+}
+
+.filter-bar select {
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid #cccccc; 
+  font-family: 'Inter Display', sans-serif;
+  font-size: 14px;
+  background-color: white;
+}

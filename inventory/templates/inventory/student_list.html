@@ -1,35 +1,49 @@
 {% extends "inventory/base.html" %}
 
 {% block content %}
-    <div class="detail-container">
+    <!-- Header with Title and "Add Student" button -->
+    <div style="display: flex; justify-content: space-between; align-items: center;">
         <h1>Student Records</h1>
-        <p>A list of all students registered in the system.</p>
-
-        {% if not students %}
-            <p>You have not added any student records yet.</p>
-        {% else %}
-            <table class="open-table">
-                <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>Admission Number</th>
-                        <th>Class</th>
-                        <th>Section</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for student in students %}
-                    <tr>
-                        <td><a href="{% url 'inventory:student_detail' student.id %}">{{ student.name }}</a></td>
-                        <td>{{ student.admission_number }}</td>
-                        <td>{{ student.student_class }}</td>
-                        <td>{{ student.section }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        {% endif %}
-        
-        <p><a href="{% url 'inventory:student_create' %}">Add a new student</a></p>
+        <a href="{% url 'inventory:student_create' %}" class="link-button">Add a new student</a>
     </div>
+    <p>A list of all students registered in the system.</p>
+
+    <!-- Filter Form with the new class, placed correctly below the header -->
+    <form method="get" class="filter-bar">
+        <label for="class_filter">Filter by Class:</label>
+        <select name="class_filter" id="class_filter" onchange="this.form.submit()">
+            <option value="">All Classes</option>
+            {% for class_name in distinct_classes %}
+                <option value="{{ class_name }}" {% if class_name == selected_class %}selected{% endif %}>
+                    {{ class_name }}
+                </option>
+            {% endfor %}
+        </select>
+        <a href="{% url 'inventory:student_list' %}">Clear Filter</a>
+    </form>
+
+    {% if not students %}
+        <p>No student records found{% if selected_class %} for class '{{ selected_class }}'{% endif %}.</p>
+    {% else %}
+        <table class="open-table">
+            <thead>
+                <tr>
+                    <th>Admission Number</th>
+                    <th>Name</th>
+                    <th>Class</th>
+                    <th>Section</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for student in students %}
+                <tr>
+                    <td>{{ student.admission_number }}</td>
+                    <td><a href="{% url 'inventory:student_detail' student.id %}">{{ student.name }}</a></td>
+                    <td>{{ student.student_class }}</td>
+                    <td>{{ student.section }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
 {% endblock %}

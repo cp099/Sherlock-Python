@@ -6,6 +6,8 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 from django.contrib.contenttypes.models import ContentType
 from django.urls import reverse
+from django.utils import timezone
+from django.db.models import Sum
 
 # Python libraries we will need to install:
 # pip install python-barcode qrcode
@@ -46,7 +48,7 @@ class Section(TimeStampedModel):
     
     def get_absolute_url(self):
         # This will create URLs like /sections/1001/
-        return reverse('section-detail', kwargs={'section_code': self.section_code})
+        return reverse('inventory:section_detail', kwargs={'section_code': self.section_code})
 
     def generate_qr_code_svg(self):
         """Generates the QR code SVG content, replicating the Rails logic."""
@@ -90,7 +92,7 @@ class Space(TimeStampedModel):
         
     def get_absolute_url(self):
         # This will create URLs like /sections/1001/spaces/2001/
-        return reverse('space-detail', kwargs={'section_code': self.section.section_code, 'space_code': self.space_code})
+        return reverse('inventory:space_detail', kwargs={'section_code': self.section.section_code, 'space_code': self.space_code})
 
     def generate_qr_code_svg(self):
         """Generates the QR code SVG content, replicating the Rails logic."""
@@ -122,9 +124,16 @@ class Item(TimeStampedModel):
     name = models.CharField(max_length=50)
     description = models.CharField(max_length=100)
     quantity = models.PositiveIntegerField(
-        validators=[MinValueValidator(1)]
+        validators=[MinValueValidator(1)],
+        default=1,
+        help_text="Total quantity of this item in inventory."
     )
     
+    buffer_quantity = models.PositiveIntegerField(
+        default=0,
+        help_text="Minimum quantity to keep in stock. This amount cannot be checked out."
+    )
+
     search_entry = GenericRelation('SearchEntry')
 
     class Meta:
@@ -132,10 +141,24 @@ class Item(TimeStampedModel):
         unique_together = ('space', 'item_code')
 
     def __str__(self):
+        return f"{self.name} (Qty: {self.quantity})"
+    
+    @property
+    def checked_out_quantity(self):
+        """Calculates the total quantity of this item currently on loan."""
+        checked_out = self.checkout_logs.filter(return_date__isnull=True).aggregate(total=Sum('quantity'))['total']
+        return checked_out or 0
+    
+    @property
+    def available_quantity(self):
+        """Calculates the quantity available for checkout (total - checked out - buffer)."""
+        return self.quantity - self.checked_out_quantity - self.buffer_quantity
+
+    def __str__(self):
         return f"{self.name} (Item: {self.item_code} in {self.space.name})"
     
     def get_absolute_url(self):
-        return reverse('item-detail', kwargs={
+        return reverse('inventory:item_detail', kwargs={
             'section_code': self.space.section.section_code,
             'space_code': self.space.space_code,
             'item_code': self.item_code
@@ -238,7 +261,30 @@ class CheckoutLog(models.Model):
     student = models.ForeignKey(Student, on_delete=models.PROTECT, related_name="checkout_logs")
     checkout_date = models.DateTimeField(auto_now_add=True)
     return_date = models.DateTimeField(null=True, blank=True, help_text="This is set when the item is returned.")
+    due_date = models.DateTimeField(help_text="The date and time the item is expected to be returned.")
+    
+    quantity = models.PositiveIntegerField(default=1, help_text="The number of items checked out in this transaction.")
 
     def __str__(self):
         status = "Returned" if self.return_date else "On Loan"
         return f"{self.item.name} to {self.student.name} ({status})"
+    
+    @property
+    def quantity_returned_so_far(self):
+        """Calculates the total quantity returned for this specific checkout log."""
+        returned = self.check_in_logs.aggregate(total=Sum('quantity_returned'))['total']
+        return returned or 0
+    
+    @property
+    def quantity_still_on_loan(self):
+        """Calculates the quantity still on loan for this checkout."""
+        return self.quantity - self.quantity_returned_so_far
+    
+class CheckInLog(models.Model):
+    """A record of a partial or full return for a specific checkout."""
+    checkout_log = models.ForeignKey(CheckoutLog, on_delete=models.CASCADE, related_name="check_in_logs")
+    quantity_returned = models.PositiveIntegerField()
+    return_date = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.quantity_returned} units of {self.checkout_log.item.name} returned on {self.return_date.strftime('%Y-%m-%d')}"

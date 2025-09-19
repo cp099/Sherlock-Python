@@ -13,6 +13,9 @@
 
     <!-- 2. Our Local Stylesheet (must come AFTER the font imports) -->
     <link rel="stylesheet" href="{% static 'inventory/css/main.css' %}">
+
+    <!-- 3. HTMX for interactivity -->
+    <script src="https://unpkg.com/htmx.org@1.9.10" integrity="sha384-D1Kt99CQMDuVetoL1lrYwg5t+9QdHe7NLX/SoJYkXDFfX37iInKRy5xLSi8nO7UC" crossorigin="anonymous"></script>
 </head>
 <body>
 
@@ -35,7 +38,11 @@
                 <div class="navigation-object">
                     <a class="navigation-link" href="{% url 'inventory:student_list' %}">Students</a>
                 </div>
-    
+                
+                <div class="navigation-object">
+                    <a class="navigation-link" href="{% url 'inventory:on_loan_dashboard' %}">On Loan Dashboard</a>
+                </div>
+
                 <div class="navigation-object navigation-category">
                     <span class="navigation-category-title">Tools</span>
                 </div>
