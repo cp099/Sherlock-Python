@@ -1,0 +1,16 @@
+<!-- sherlock-python/inventory/templates/inventory/partials/unified_student_search_results.html -->
+{% load inventory_extras %}
+
+{% if student_results %}
+    {% for student in student_results %}
+    <tr>
+        <td><a href="{% url 'inventory:student_detail' student.id %}">{{ student.name|highlight:student_query }}</a></td>
+        <td>{{ student.admission_number }}</td>
+        <td>{{ student.student_class }}</td>
+    </tr>
+    {% endfor %}
+{% elif student_query %}
+    <tr>
+        <td colspan="3">No students found matching your query.</td>
+    </tr>
+{% endif %}

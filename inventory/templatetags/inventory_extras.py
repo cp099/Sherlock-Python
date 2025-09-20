@@ -1,5 +1,7 @@
 # sherlock-python/inventory/templatetags/inventory_extras.py
+import re
 from django import template
+from django.utils.safestring import mark_safe
 
 register = template.Library()
 
@@ -15,8 +17,13 @@ def highlight(text, query):
         highlighted_text = re.sub(
             f'({re.escape(query)})', 
             r'<strong>\1</strong>', 
-            text, 
+            str(text),  # Ensure text is a string
             flags=re.IGNORECASE
         )
         return mark_safe(highlighted_text)
     return text
+
+@register.filter
+def model_name(value):
+    """Returns the name of the model for an object."""
+    return value.__class__.__name__

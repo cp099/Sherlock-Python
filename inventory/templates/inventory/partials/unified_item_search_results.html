@@ -1,0 +1,18 @@
+<!-- sherlock-python/inventory/templates/inventory/partials/unified_item_search_results.html -->
+{% load inventory_extras %}
+
+{% if item_results %}
+    {% for entry in item_results %}
+        {% if entry.searchable_object %}
+        <tr>
+            <td><a href="{{ entry.url }}">{{ entry.name|highlight:item_query }}</a></td>
+            <td>{{ entry.content_type.model|title }}</td>
+            <td>{{ entry.searchable_object.updated_at|date:"d M Y" }}</td>
+        </tr>
+        {% endif %}
+    {% endfor %}
+{% elif item_query %}
+    <tr>
+        <td colspan="3">No items found matching your query.</td>
+    </tr>
+{% endif %}

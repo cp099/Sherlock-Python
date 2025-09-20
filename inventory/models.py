@@ -175,6 +175,14 @@ class Item(TimeStampedModel):
             f"{self.item_code:04d}"
         )
         super().save(*args, **kwargs)
+
+        search_entry, created = SearchEntry.objects.get_or_create(
+            content_type=ContentType.objects.get_for_model(self),
+            object_id=self.id
+        )
+        search_entry.name = self.name
+        search_entry.url = self.get_absolute_url()
+        search_entry.save()
     
     def get_absolute_url(self):
         return reverse('inventory:item_detail', kwargs={

@@ -421,21 +421,65 @@ def print_page(request):
 # ==================================
 # Search View
 # ==================================
-@login_required
-def search_index(request):
-    query = request.GET.get('query')
-    search_entries = None
 
-    if query:
-        search_entries = SearchEntry.objects.filter(
-            name__icontains=query
-        ).select_related('content_type')
+@login_required
+def live_unified_student_search(request):
+    """
+    Handles HTMX requests for the student search on the unified search page.
+    Returns only the table rows with the results.
+    """
+    student_query = request.GET.get('student_query', '').strip()
+    student_results = None
+    if len(student_query) >= 1: # Start searching from the first character
+        student_results = Student.objects.filter(
+            Q(name__icontains=student_query) | Q(admission_number__icontains=student_query)
+        ).order_by('student_class', 'name')
 
     context = {
-        'query': query,
-        'search_entries': search_entries,
+        'student_results': student_results,
+        'student_query': student_query,
+    }
+    return render(request, 'inventory/partials/unified_student_search_results.html', context)
+
+@login_required
+def live_unified_item_search(request):
+    """
+    Handles HTMX requests for the item search on the unified search page.
+    This is the CORRECTED, working version.
+    """
+    item_query = request.GET.get('item_query', '').strip()
+    item_results = None
+    if len(item_query) >= 1:
+        # 1. Fetch all SearchEntry objects that match the name
+        # We only select_related on 'content_type', which is a valid ForeignKey
+        search_entries = SearchEntry.objects.filter(
+            name__icontains=item_query
+        ).select_related('content_type')
+
+        # 2. We will pass these SearchEntry objects directly to the template
+        item_results = search_entries
+    
+    context = {
+        'item_results': item_results,
+        'item_query': item_query,
+    }
+    return render(request, 'inventory/partials/unified_item_search_results.html', context)
+
+@login_required
+def search_index(request):
+    """
+    This view now ONLY renders the main search page.
+    All the search logic is handled by the live search views.
+    """
+    # We pass empty context because the page starts with no search results.
+    context = {
+        'item_query': '',
+        'student_query': '',
+        'item_results': None,
+        'student_results': None,
     }
     return render(request, 'inventory/search_index.html', context)
+
 
 # ==================================
 # PHASE B: CHECKOUT TERMINAL VIEWS

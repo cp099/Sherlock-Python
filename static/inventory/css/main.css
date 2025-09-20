@@ -424,3 +424,14 @@ main {
   font-size: 12px;
   border-radius: 15px;
 }
+
+/* Styles for the Unified Search Dashboard */
+.search-container {
+  display: flex;
+  gap: 40px; /* Space between the two columns */
+  align-items: flex-start; /* Aligns the tops of the columns */
+}
+
+.search-column {
+  flex: 1; /* Each column will take up half the available space */
+}

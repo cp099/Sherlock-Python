@@ -1,43 +1,54 @@
 {% extends "inventory/base.html" %}
-{% load inventory_extras %} {# Load our custom highlight filter #}
+{% load inventory_extras %}
 
 {% block content %}
-    <h1>Search</h1>
+    <h1>Unified Search</h1>
 
-    <form action="{% url 'inventory:search' %}" method="get">
-        <input type="text" name="query" placeholder="Search for something..." value="{{ query|default:'' }}">
-        <button type="submit">Go</button>
-        <a href="{% url 'inventory:search' %}">Clear</a>
-    </form>
-
-    {% if search_entries is not None %}
-        {% if not search_entries %}
-            <p>Sorry, Sherlock couldn't find anything that matched your query. Please try again.</p>
-        {% else %}
-            <table>
+    <div class="search-container">
+        <!-- === ITEM SEARCH COLUMN === -->
+        <div class="search-column">
+            <h2>Search for Items</h2>
+            <div>
+                <input type="search"
+                       name="item_query"
+                       placeholder="Search by item name..."
+                       class="student-search-input"
+                       hx-get="{% url 'inventory:live_unified_item_search' %}"
+                       hx-trigger="keyup changed delay:200ms"
+                       hx-target="#item-search-results-tbody"
+                       hx-swap="innerHTML">
+            </div>
+            <table class="open-table" style="margin-top: 1em;">
                 <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>Type</th>
-                        <th>Last Updated</th>
-                        <th>Created</th>
-                    </tr>
+                    <tr><th>Name</th><th>Type</th><th>Last Updated</th></tr>
                 </thead>
-                <tbody>
-                    {% for entry in search_entries %}
-                    <tr>
-                        <td>
-                            <a href="{{ entry.url }}">
-                                <h3>{{ entry.name|highlight:query }}</h3>
-                            </a>
-                        </td>
-                        <td>{{ entry.content_type.model|title }}</td>
-                        <td>{{ entry.searchable_object.updated_at }}</td>
-                        <td>{{ entry.searchable_object.created_at }}</td>
-                    </tr>
-                    {% endfor %}
+                <tbody id="item-search-results-tbody">
+                    <!-- HTMX will inject live results here -->
                 </tbody>
             </table>
-        {% endif %}
-    {% endif %}
+        </div>
+
+        <!-- === STUDENT SEARCH COLUMN (RESTORED) === -->
+        <div class="search-column">
+            <h2>Search for Students</h2>
+            <div>
+                <input type="search"
+                       name="student_query"
+                       placeholder="Search by name or admission no..."
+                       class="student-search-input"
+                       hx-get="{% url 'inventory:live_unified_student_search' %}"
+                       hx-trigger="keyup changed delay:200ms"
+                       hx-target="#student-search-results-tbody"
+                       hx-swap="innerHTML">
+            </div>
+            <table class="open-table" style="margin-top: 1em;">
+                <thead>
+                    <tr><th>Name</th><th>Admission No.</th><th>Class</th></tr>
+                </thead>
+                <tbody id="student-search-results-tbody">
+                    <!-- HTMX will inject live results here -->
+                </tbody>
+            </table>
+        </div>
+    </div>
 {% endblock %}
