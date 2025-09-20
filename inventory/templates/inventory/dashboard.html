@@ -1,0 +1,118 @@
+{% extends "inventory/base.html" %}
+{% load inventory_extras %}
+
+{% block content %}
+    <h1>Dashboard</h1>
+    <p>Welcome back! Here's a summary of your lab's current status.</p>
+
+    <div class="dashboard-grid">
+        <!-- CLICKABLE METRIC CARDS -->
+        <a href="{% url 'inventory:on_loan_dashboard' %}" class="dashboard-card">
+            <div class="card-header"><span class="card-label">Items on Loan</span><i class="fa-solid fa-boxes-packing card-icon"></i></div>
+            <span class="card-value">{{ total_items_on_loan }}</span>
+        </a>
+        <a href="{% url 'inventory:overdue_report' %}" class="dashboard-card {% if overdue_items_count > 0 %}card-danger{% endif %}">
+            <div class="card-header"><span class="card-label">Items Overdue</span><i class="fa-solid fa-triangle-exclamation card-icon"></i></div>
+            <span class="card-value">{{ overdue_items_count }}</span>
+        </a>
+        <a href="{% url 'inventory:low_stock_report' %}" class="dashboard-card {% if low_stock_items_count > 0 %}card-warning{% endif %}">
+            <div class="card-header"><span class="card-label">Low Stock Items</span><i class="fa-solid fa-battery-quarter card-icon"></i></div>
+            <span class="card-value">{{ low_stock_items_count }}</span>
+        </a>
+        <a href="{% url 'inventory:student_list' %}" class="dashboard-card">
+            <div class="card-header"><span class="card-label">New Students This Month</span><i class="fa-solid fa-user-plus card-icon"></i></div>
+            <span class="card-value">{{ new_students_count }}</span>
+        </a>
+    </div>
+
+    <!-- QUICK ACTIONS (REMOVED) -->
+
+    <!-- ACTIVITY FEEDS -->
+    <div class="dashboard-feeds">
+        <div class="feed-column">
+            <h3>Recently Checked Out (Today)</h3>
+            {% if recently_checked_out %}
+                <ul>
+                    {% for log in recently_checked_out %}
+                    <li>
+                        <span><strong>{{ log.quantity }} x <a href="{{ log.item.get_absolute_url }}">{{ log.item.name }}</a></strong> to <a href="{% url 'inventory:student_detail' log.student.id %}">{{ log.student.name }}</a> ({{ log.student.student_class }})</span>
+                        <span class="feed-due-date">{{ log.checkout_date|date:"h:i A" }}</span>
+                    </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p>No items have been checked out today.</p>
+            {% endif %}
+        </div>
+        <div class="feed-column">
+            <h3>Items Due Soon</h3>
+            {% if items_due_soon %}
+                <ul>
+                    {% for log in items_due_soon %}
+                    <li>
+                        <span><strong>{{ log.quantity_still_on_loan }} x <a href="{{ log.item.get_absolute_url }}">{{ log.item.name }}</a></strong> to <a href="{% url 'inventory:student_detail' log.student.id %}">{{ log.student.name }}</a></span>
+                        <span class="feed-due-date">{{ log.due_date|urgency_tag }}</span>
+                    </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p>No items are due in the next three days.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- CHARTS -->
+    <div class="dashboard-charts">
+        <div class="chart-container">
+            <h3>Loan Activity (Last 7 Days)</h3>
+            <canvas id="loanActivityChart"></canvas>
+        </div>
+        <div class="chart-container">
+            <h3>Most Popular Items</h3>
+            <canvas id="popularItemsChart"></canvas>
+        </div>
+    </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Loan Activity Bar Chart
+        const loanCtx = document.getElementById('loanActivityChart').getContext('2d');
+        new Chart(loanCtx, {
+            type: 'bar',
+            data: {
+                labels: {{ loan_activity_labels|safe }},
+                datasets: [{
+                    label: '# of Loans',
+                    data: {{ loan_activity_data|safe }},
+                    backgroundColor: 'rgba(32, 129, 112, 0.6)',
+                    borderColor: 'rgba(32, 129, 112, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: { scales: { y: { beginAtZero: true } } }
+        });
+
+        // Popular Items Doughnut Chart
+        const popularCtx = document.getElementById('popularItemsChart').getContext('2d');
+        new Chart(popularCtx, {
+            type: 'doughnut',
+            data: {
+                labels: {{ popular_items_labels|safe }},
+                datasets: [{
+                    label: 'Checkouts',
+                    data: {{ popular_items_data|safe }},
+                    backgroundColor: [
+                        'rgba(32, 129, 112, 0.8)',
+                        'rgba(1, 169, 149, 0.7)',
+                        'rgba(157, 204, 82, 0.6)',
+                        'rgba(113, 179, 7, 0.5)',
+                        'rgba(84, 130, 10, 0.4)'
+                    ],
+                    hoverOffset: 4
+                }]
+            }
+        });
+    });
+</script>
+
+{% endblock %}

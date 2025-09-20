@@ -440,3 +440,172 @@ main {
   color: #aa0000; /* Use a strong red color from our palette */
   font-weight: 600; /* Make the text bold to draw attention */
 }
+
+
+.dashboard-cards {
+  display: flex;
+  gap: 20px;
+  margin: 1.5em 0;
+}
+.card {
+  flex: 1;
+  background-color: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 20px;
+  text-align: center;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+.card-value {
+  display: block;
+  font-size: 3em;
+  font-weight: 700;
+  color: #208170;
+}
+.card-label {
+  font-size: 1em;
+  color: #656565;
+}
+.card-danger .card-value { color: #aa0000; }
+.card-warning .card-value { color: #f5a623; }
+
+.quick-actions {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 1.5em;
+}
+
+.activity-feeds {
+  display: flex;
+  gap: 40px;
+}
+.feed-column {
+  flex: 1;
+}
+.feed-column ul {
+  list-style-type: none;
+  padding: 0;
+}
+.feed-column li {
+  padding: 8px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+/* =================================
+   NEW ADVANCED DASHBOARD STYLES
+   ================================= */
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr); /* 4 equal columns for the cards */
+  gap: 20px;
+}
+
+.dashboard-card {
+  grid-column: span 1; /* Each card takes one column */
+  background-color: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  transition: transform 0.2s ease-in-out;
+}
+.dashboard-card:hover {
+  transform: translateY(-5px);
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+.card-label {
+  font-family: 'Inter Display', sans-serif;
+  font-weight: 600;
+  color: #656565;
+}
+.card-icon {
+  font-size: 1.5em;
+  color: #d6d6d6;
+}
+.card-value {
+  font-size: 3em;
+  font-weight: 700;
+  color: #208170;
+  text-align: left;
+}
+.card-danger .card-value { color: #aa0000; }
+.card-warning .card-value { color: #f5a623; }
+
+.dashboard-actions {
+  grid-column: 1 / -1; /* Make this span all 4 columns */
+  display: flex;
+  gap: 15px;
+  margin: 1.5em 0;
+}
+
+.dashboard-feeds {
+  grid-column: 1 / -1; /* Make this span all 4 columns */
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+  margin-top: 1.5em;
+}
+.feed-column {
+  background-color: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  padding: 20px;
+}
+.feed-column h3 {
+  margin-top: 0;
+}
+.feed-column ul {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+.feed-column li {
+  padding: 10px 0;
+  border-bottom: 1px solid #f0f0f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.feed-column li:last-child {
+  border-bottom: none;
+}
+.feed-due-date {
+  font-weight: 600;
+  color: #656565;
+}
+
+/* Styles for Urgency Tags */
+.urgency-tag {
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: white;
+}
+.urgency-tag.overdue { background-color: #aa0000; }
+.urgency-tag.due-today { background-color: #f5a623; }
+.urgency-tag.due-soon { background-color: #208170; }
+
+/* Styles for Chart Containers */
+.dashboard-charts {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: 2fr 1fr; /* 2/3 width for bar, 1/3 for pie */
+  gap: 40px;
+  margin-top: 1.5em;
+}
+.chart-container {
+  background-color: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  padding: 20px;
+}

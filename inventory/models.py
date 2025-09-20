@@ -263,7 +263,7 @@ class SearchEntry(models.Model):
 # PHASE 2: LENDING SYSTEM MODELS
 # ==============================================================================
 
-class Student(models.Model):
+class Student(TimeStampedModel):
     """A record for a student who can borrow items."""
     admission_number = models.CharField(max_length=50, unique=True, help_text="Unique student admission or ID number.")
     name = models.CharField(max_length=100)

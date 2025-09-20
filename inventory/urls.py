@@ -6,6 +6,9 @@ from . import views
 app_name = 'inventory'
 
 urlpatterns = [
+    # Dashboard
+    path('dashboard/', views.dashboard, name='dashboard'),
+    
     # Search
     path('search/', views.search_index, name='search'),
 
@@ -62,6 +65,7 @@ urlpatterns = [
     # Checkout Log Routes
     path('on-loan/', views.on_loan_dashboard, name='on_loan_dashboard'),
     path('overdue-report/', views.overdue_items_report, name='overdue_report'),
+    path('low-stock-report/', views.low_stock_report, name='low_stock_report'),
     path('check-in/<int:log_id>/', views.check_in_page, name='check_in_page'),
     path('check-in/<int:log_id>/process/', views.process_check_in, name='process_check_in'),
 

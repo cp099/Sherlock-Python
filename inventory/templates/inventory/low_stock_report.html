@@ -1,0 +1,34 @@
+{% extends "inventory/base.html" %}
+
+{% block content %}
+    <h1>Low Stock Report</h1>
+    <p>A list of all items with a total quantity of 5 or less in the inventory.</p>
+
+    {% if not low_stock_items %}
+        <p>No items are currently low on stock. Great!</p>
+    {% else %}
+        {% for item in low_stock_items %}
+            {% ifchanged item.space.section %}
+                <h2 style="margin-top: 2em;">Section: {{ item.space.section.name }}</h2>
+                <table class="open-table">
+                    <thead>
+                        <tr>
+                            <th>Item Name</th>
+                            <th>Location (Space)</th>
+                            <th>Quantity on Hand</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            {% endifchanged %}
+                    <tr>
+                        <td><a href="{{ item.get_absolute_url }}">{{ item.name }}</a></td>
+                        <td>{{ item.space.name }}</td>
+                        <td style="font-weight: bold; color: #aa0000;">{{ item.quantity }}</td>
+                    </tr>
+            {% if forloop.last or item.space.section.id != forloop.nextitem.space.section.id %}
+                    </tbody>
+                </table>
+            {% endif %}
+        {% endfor %}
+    {% endif %}
+{% endblock %}

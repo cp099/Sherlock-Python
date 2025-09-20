@@ -10,7 +10,8 @@ from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import login
 from django.contrib import messages
 from django.utils import timezone
-from django.db.models import Q, Sum, Max, F
+from django.db.models import Q, Sum, Max, F, Count
+from django.db.models.functions import TruncDay
 
 from .models import Section, Space, Item, PrintQueue, PrintQueueItem, SearchEntry, Student, CheckoutLog, CheckInLog
 from .forms import SectionForm, SpaceForm, ItemForm, StudentForm
@@ -41,6 +42,55 @@ def signup(request):
     else:
         form = UserCreationForm()
     return render(request, 'registration/signup.html', {'form': form})
+
+# ==================================
+# DASHBOARD VIEWS
+# ==================================
+
+@login_required
+def dashboard(request):
+    now = timezone.now()
+    today = now.date()
+    one_week_ago = today - timedelta(days=6)
+    start_of_month = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    three_days_from_now = now + timedelta(days=3)
+
+    # --- 1. METRIC CARD QUERIES (Unchanged) ---
+    total_items_on_loan = CheckoutLog.objects.filter(return_date__isnull=True).aggregate(total=Sum('quantity'))['total'] or 0
+    overdue_items_count = CheckoutLog.objects.filter(return_date__isnull=True, due_date__lt=now).count()
+    low_stock_items_count = Item.objects.filter(quantity__lte=5).count()
+    new_students_count = Student.objects.filter(created_at__gte=start_of_month).count()
+
+    # --- 2. ACTIVITY FEED QUERIES (Unchanged) ---
+    recently_checked_out = CheckoutLog.objects.filter(checkout_date__gte=now.replace(hour=0, minute=0), return_date__isnull=True).select_related('item', 'student').order_by('-checkout_date')[:5]
+    items_due_soon = CheckoutLog.objects.filter(return_date__isnull=True, due_date__gte=now, due_date__lte=three_days_from_now).select_related('item', 'student').order_by('due_date')[:5]
+
+    # --- 3. NEW CHART QUERIES ---
+    # Loan activity for the last 7 days
+    days = [(today - timedelta(days=i)) for i in range(6, -1, -1)]
+    loan_activity_qs = CheckoutLog.objects.filter(checkout_date__date__gte=one_week_ago).annotate(day=TruncDay('checkout_date')).values('day').annotate(count=Count('id')).order_by('day')
+    loan_activity_dict = {entry['day'].date(): entry['count'] for entry in loan_activity_qs}
+    loan_activity_data = [loan_activity_dict.get(day, 0) for day in days]
+    loan_activity_labels = [day.strftime("%a") for day in days] # Mon, Tue, Wed
+
+    # Top 5 most popular items
+    popular_items_qs = CheckoutLog.objects.values('item__name').annotate(count=Count('item')).order_by('-count')[:5]
+    popular_items_labels = [item['item__name'] for item in popular_items_qs]
+    popular_items_data = [item['count'] for item in popular_items_qs]
+    
+    context = {
+        'total_items_on_loan': total_items_on_loan,
+        'overdue_items_count': overdue_items_count,
+        'low_stock_items_count': low_stock_items_count,
+        'new_students_count': new_students_count,
+        'recently_checked_out': recently_checked_out,
+        'items_due_soon': items_due_soon,
+        'loan_activity_labels': loan_activity_labels,
+        'loan_activity_data': loan_activity_data,
+        'popular_items_labels': popular_items_labels,
+        'popular_items_data': popular_items_data,
+    }
+    return render(request, 'inventory/dashboard.html', context)
 
 # ==================================
 # SECTION VIEWS
@@ -733,6 +783,21 @@ def overdue_items_report(request):
         'overdue_logs': overdue_logs,
     }
     return render(request, 'inventory/overdue_report.html', context)
+
+@login_required
+def low_stock_report(request):
+    """
+    Displays a report of all items with a quantity of 5 or less,
+    ordered by their section and space for easy location.
+    """
+    low_stock_items = Item.objects.filter(
+        quantity__lte=5
+    ).select_related('space__section').order_by('space__section__name', 'space__name', 'name')
+
+    context = {
+        'low_stock_items': low_stock_items,
+    }
+    return render(request, 'inventory/low_stock_report.html', context)
 
 @login_required
 def check_in_page(request, log_id):
