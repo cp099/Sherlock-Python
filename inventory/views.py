@@ -720,6 +720,21 @@ def on_loan_dashboard(request):
     return render(request, 'inventory/on_loan_dashboard.html', context)
 
 @login_required
+def overdue_items_report(request):
+    """
+    Displays a dedicated report of only items that are past their due date.
+    """
+    overdue_logs = CheckoutLog.objects.filter(
+        return_date__isnull=True,
+        due_date__lt=timezone.now() # The key filter: due date is in the past
+    ).select_related('item', 'student').order_by('due_date')
+
+    context = {
+        'overdue_logs': overdue_logs,
+    }
+    return render(request, 'inventory/overdue_report.html', context)
+
+@login_required
 def check_in_page(request, log_id):
     """
     Displays the details of a loan and the form for returning a quantity.

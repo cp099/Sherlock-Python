@@ -1,29 +1,26 @@
 {% extends "inventory/base.html" %}
 
 {% block content %}
-    <div style="display: flex; justify-content: space-between; align-items: center;">
-        <h1>Items Currently On Loan</h1>
-        <a href="{% url 'inventory:checkout_find_student' %}" class="link-button">Go to Checkout Terminal</a>
-    </div>
-    <p>A list of all items that are currently checked out by students.</p>
+    <h1>Overdue Items Report</h1>
+    <p>A list of all items that have passed their due date and have not been returned.</p>
 
-    {% if not on_loan_logs %}
-        <p>No items are currently on loan. Great!</p>
+    {% if not overdue_logs %}
+        <p>There are no overdue items. Excellent!</p>
     {% else %}
         <table class="open-table">
             <thead>
                 <tr>
                     <th>Item</th>
-                    <th>Qty</th>
+                    <th>Qty on Loan</th>
                     <th>Student</th>
                     <th>Checked Out</th>
-                    <th>Due Date</th>
-                    <th></th> {# Column for the check-in button #}
+                    <th>Date Due</th>
+                    <th></th>
                 </tr>
             </thead>
             <tbody>
-                {% for log in on_loan_logs %}
-                <tr {% if log.is_overdue %}class="overdue-item"{% endif %}>
+                {% for log in overdue_logs %}
+                <tr class="overdue-item"> {# We can apply the class directly here #}
                     <td><a href="{{ log.item.get_absolute_url }}">{{ log.item.name }}</a></td>
                     <td>{{ log.quantity_still_on_loan }}</td>
                     <td><a href="{% url 'inventory:student_detail' log.student.id %}">{{ log.student.name }}</a></td>

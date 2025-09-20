@@ -308,6 +308,12 @@ class CheckoutLog(models.Model):
         """Calculates the quantity still on loan for this checkout."""
         return self.quantity - self.quantity_returned_so_far
     
+    @property
+    def is_overdue(self):
+        """Returns True if the item is not returned and the due date is in the past."""
+        # This will only be True if both conditions are met.
+        return self.return_date is None and self.due_date < timezone.now()
+    
 class CheckInLog(models.Model):
     """A record of a partial or full return for a specific checkout."""
     checkout_log = models.ForeignKey(CheckoutLog, on_delete=models.CASCADE, related_name="check_in_logs")

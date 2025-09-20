@@ -435,3 +435,8 @@ main {
 .search-column {
   flex: 1; /* Each column will take up half the available space */
 }
+
+.overdue-item td {
+  color: #aa0000; /* Use a strong red color from our palette */
+  font-weight: 600; /* Make the text bold to draw attention */
+}

@@ -61,8 +61,10 @@ urlpatterns = [
 
     # Checkout Log Routes
     path('on-loan/', views.on_loan_dashboard, name='on_loan_dashboard'),
+    path('overdue-report/', views.overdue_items_report, name='overdue_report'),
     path('check-in/<int:log_id>/', views.check_in_page, name='check_in_page'),
     path('check-in/<int:log_id>/process/', views.process_check_in, name='process_check_in'),
+
 
     # Checkout Routes
     path('checkout/', views.checkout_find_student, name='checkout_find_student'),
