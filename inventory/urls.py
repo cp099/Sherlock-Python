@@ -45,6 +45,9 @@ urlpatterns = [
     # Live Student Search (for HTMX)
     path('live-student-search/', views.live_student_search, name='live_student_search'),
 
+    # Live Item Search (for HTMX)
+    path('live-item-search/<int:student_id>/', views.live_item_search, name='live_item_search'),
+
     # Student Routes
     path('students/', views.student_list, name='student_list'),
     path('students/new/', views.student_create, name='student_create'),

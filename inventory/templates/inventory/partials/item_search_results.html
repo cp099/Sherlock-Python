@@ -1,0 +1,22 @@
+<!-- sherlock-python/inventory/templates/inventory/partials/item_search_results.html -->
+
+{% if item_results %}
+    <div class="search-results-box">
+        {% for item in item_results %}
+        <div class="search-result-item">
+            <span>{{ item.name }} (Available: {{ item.available_quantity }})</span>
+            <form action="{% url 'inventory:checkout_session' student_id %}" method="post" style="display: inline;">
+                {% csrf_token %}
+                <input type="hidden" name="query" value="{{ item.space.section.section_code|stringformat:'04d' }}{{ item.space.space_code|stringformat:'04d' }}{{ item.item_code|stringformat:'04d' }}">
+                <button type="submit" name="add_item">Add</button>
+            </form>
+        </div>
+        {% endfor %}
+    </div>
+{% elif query and not item_results %}
+    <div class="search-results-box">
+        <div class="search-result-item">
+            <span>No items found matching '{{ query }}'.</span>
+        </div>
+    </div>
+{% endif %}

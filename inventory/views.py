@@ -10,7 +10,7 @@ from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import login
 from django.contrib import messages
 from django.utils import timezone
-from django.db.models import Q, Sum, Max
+from django.db.models import Q, Sum, Max, F
 
 from .models import Section, Space, Item, PrintQueue, PrintQueueItem, SearchEntry, Student, CheckoutLog, CheckInLog
 from .forms import SectionForm, SpaceForm, ItemForm, StudentForm
@@ -457,6 +457,30 @@ def live_student_search(request):
     context = {'student_results': student_results}
     return render(request, 'inventory/partials/student_search_results.html', context)
 
+# In inventory/views.py
+
+@login_required
+def live_item_search(request, student_id):
+    query = request.GET.get('query', '').strip()
+    item_results = None
+    if len(query) >= 1:
+        # --- THE UPGRADED SEARCH LOGIC ---
+        # Search in BOTH the item name and the new barcode field
+        item_results = Item.objects.filter(
+            Q(name__icontains=query) | Q(barcode__startswith=query)
+        ).annotate(
+            on_loan_qty=Sum('checkout_logs__quantity', filter=Q(checkout_logs__return_date__isnull=True))
+        ).filter(
+            Q(on_loan_qty__isnull=True) | Q(quantity__gt=F('on_loan_qty') + F('buffer_quantity'))
+        ).distinct()[:5]
+
+    context = {
+        'item_results': item_results,
+        'student_id': student_id,
+        'query': query
+    }
+    return render(request, 'inventory/partials/item_search_results.html', context)
+
 @login_required
 def checkout_find_student(request):
     query = request.POST.get('query', '').strip()
@@ -504,58 +528,73 @@ def checkout_session(request, student_id):
     if request.method == 'POST':
         # --- LOGIC FOR ADDING A NEW ITEM ---
         if 'add_item' in request.POST:
-            barcode_value = request.POST.get('barcode', '').strip()
-            try:
-                quantity_to_add = int(request.POST.get('quantity', 1))
-                if quantity_to_add <= 0:
-                    messages.error(request, "Quantity must be a positive number.")
+            query = request.POST.get('query', '').strip()
+            item_to_add = None
+            
+            # First, try to treat the query as a barcode
+            if query.isdigit() and len(query) >= 12:
+                try:
+                    section_code = int(query[0:4])
+                    space_code = int(query[4:8])
+                    item_code = int(query[8:12])
+                    item_to_add = Item.objects.get(space__section__section_code=section_code, space__space_code=space_code, item_code=item_code)
+                except (Item.DoesNotExist, ValueError):
+                    pass # It's not a valid barcode, so we'll try searching by name next
+
+            # If it wasn't a valid barcode, try searching by name
+            if not item_to_add and query:
+                results = Item.objects.filter(name__icontains=query)
+                if results.count() == 1:
+                    item_to_add = results.first()
+                elif results.count() > 1:
+                    messages.error(request, f"Multiple items found for '{query}'. Please be more specific or use the barcode.")
+                # If count is 0, we'll fall through to the final error message
+            
+            # Now, process the item if we found one
+            if item_to_add:
+                # This part now defaults to adding a quantity of 1
+                quantity_to_add = 1 
+                current_in_session = checkout_items.get(str(item_to_add.id), 0)
+                requested_total = current_in_session + quantity_to_add
+                if requested_total > item_to_add.available_quantity:
+                    messages.error(request, f"Not enough stock for '{item_to_add.name}'. Available to lend: {item_to_add.available_quantity}")
                 else:
-                    # Find the item
-                    section_code = int(barcode_value[0:4])
-                    space_code = int(barcode_value[4:8])
-                    item_code = int(barcode_value[8:12])
-                    item = Item.objects.get(space__section__section_code=section_code, space__space_code=space_code, item_code=item_code)
+                    checkout_items[str(item_to_add.id)] = requested_total
+                    request.session['checkout_items'] = checkout_items
+                    messages.success(request, f"Added 1 x '{item_to_add.name}' to the list.")
+            elif query:
+                messages.error(request, f"ERROR: No item found matching '{query}'.")
 
-                    # Check if there is enough stock
-                    current_in_session = checkout_items.get(str(item.id), 0)
-                    requested_total = current_in_session + quantity_to_add
-                    
-                    if requested_total > item.available_quantity:
-                        messages.error(request, f"Not enough stock for '{item.name}'. Available to lend: {item.available_quantity}")
-                    else:
-                        checkout_items[str(item.id)] = requested_total
-                        request.session['checkout_items'] = checkout_items
-                        messages.success(request, f"Added {quantity_to_add} x '{item.name}' to the list.")
-
-            except (Item.DoesNotExist, ValueError):
-                messages.error(request, f"ERROR: No item found with the code '{barcode_value}'.")
-        
         # --- LOGIC FOR COMPLETING THE CHECKOUT ---
         elif 'complete_checkout' in request.POST:
             if not checkout_items:
                 messages.error(request, "Cannot complete checkout with no items.")
             else:
-                # ... (Due date logic remains the same) ...
                 due_date_option = request.POST.get('due_date_option')
                 final_due_date = None
                 if due_date_option == 'days':
-                    days = int(request.POST.get('days_to_return', 0))
-                    if days > 0:
-                        future_date = timezone.now().date() + timedelta(days=days)
-                        final_due_date = timezone.make_aware(datetime.combine(future_date, datetime.min.time())).replace(hour=9)
+                    try:
+                        days = int(request.POST.get('days_to_return', 0))
+                        if days > 0:
+                            future_date = timezone.now().date() + timedelta(days=days)
+                            final_due_date = timezone.make_aware(datetime.combine(future_date, datetime.min.time())).replace(hour=9)
+                    except (ValueError, TypeError):
+                         messages.error(request, "Invalid number of days.")
                 elif due_date_option == 'date':
-                    date_str = request.POST.get('return_date')
-                    if date_str:
-                        final_due_date = timezone.make_aware(datetime.strptime(date_str, '%Y-%m-%d'))
+                    try:
+                        date_str = request.POST.get('return_date')
+                        if date_str:
+                            final_due_date = timezone.make_aware(datetime.strptime(date_str, '%Y-%m-%d'))
+                    except (ValueError, TypeError):
+                        messages.error(request, "Invalid date format.")
                 
                 if final_due_date:
                     for item_id, quantity in checkout_items.items():
                         item = Item.objects.get(id=item_id)
-                        # We don't decrease the main quantity anymore, we just log the checkout
                         CheckoutLog.objects.create(
                             item=item, 
                             student=student, 
-                            due_date=final_due_date,
+                            due_date=final_due_date, 
                             quantity=quantity
                         )
                     del request.session['checkout_items']

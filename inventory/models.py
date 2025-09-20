@@ -157,6 +157,25 @@ class Item(TimeStampedModel):
     def __str__(self):
         return f"{self.name} (Item: {self.item_code} in {self.space.name})"
     
+    barcode = models.CharField(max_length=12, blank=True, editable=False)
+    
+    search_entry = GenericRelation('SearchEntry')
+
+    class Meta:
+        unique_together = ('space', 'item_code')
+
+    def __str__(self):
+        return f"{self.name} (Qty: {self.quantity})"
+    
+    def save(self, *args, **kwargs):
+        # Auto-generate the 12-digit barcode string
+        self.barcode = (
+            f"{self.space.section.section_code:04d}"
+            f"{self.space.space_code:04d}"
+            f"{self.item_code:04d}"
+        )
+        super().save(*args, **kwargs)
+    
     def get_absolute_url(self):
         return reverse('inventory:item_detail', kwargs={
             'section_code': self.space.section.section_code,
@@ -184,6 +203,7 @@ class Item(TimeStampedModel):
     def is_on_loan(self):
         """Returns the CheckoutLog if the item is currently on loan, otherwise None."""
         return self.checkout_logs.filter(return_date__isnull=True).first()
+    
 
 
 # ==============================================================================

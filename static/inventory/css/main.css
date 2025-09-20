@@ -385,3 +385,42 @@ main {
   font-size: 14px;
   background-color: white;
 }
+
+.barcode-font {
+  font-family: monospace;
+  font-size: 14px;
+}
+
+.search-results-box {
+  border: 1px solid #ccc;
+  background-color: white;
+  margin-top: 5px;
+  border-radius: 5px;
+  max-height: 200px;
+  overflow-y: auto;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1); 
+}
+.search-result-item {
+  padding: 8px 12px;
+  display: flex; /* This is the key change */
+  justify-content: space-between; /* Pushes the text and button apart */
+  align-items: center; /* Vertically aligns them */
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.search-result-item:last-child {
+  border-bottom: none;
+}
+
+/* Style for the text part of the result */
+.search-result-item span {
+  font-family: 'Inter Display', sans-serif;
+  font-size: 14px;
+}
+
+/* Style for the 'Add' button in the results */
+.search-result-item button {
+  padding: 6px 10px;
+  font-size: 12px;
+  border-radius: 15px;
+}
