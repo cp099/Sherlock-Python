@@ -33,10 +33,11 @@ class SpaceForm(forms.ModelForm):
 class ItemForm(forms.ModelForm):
     class Meta:
         model = Item
-        fields = ['item_code', 'name', 'description', 'quantity']
-        # The 'space' field is excluded as it's set from the URL.
+        # --- 'quantity' has been removed from this list ---
+        fields = ['item_code', 'name', 'description', 'buffer_quantity']
         labels = {
             'item_code': 'Item Code',
+            'buffer_quantity': 'Buffer Stock Quantity',
         }
         widgets = {
             'description': forms.Textarea(attrs={'rows': 4}),
@@ -50,3 +51,15 @@ class StudentForm(forms.ModelForm):
             'admission_number': 'Admission Number',
             'student_class': 'Class',
         }
+
+class StockAdjustmentForm(forms.Form):
+    quantity = forms.IntegerField(
+        min_value=1,
+        label="Quantity Change",
+        widget=forms.NumberInput(attrs={'autofocus': True})
+    )
+    notes = forms.CharField(
+        widget=forms.Textarea(attrs={'rows': 3}),
+        required=True,
+        help_text="Please provide a reason for this stock change (e.g., 'New order received', 'Dropped and damaged')."
+    )

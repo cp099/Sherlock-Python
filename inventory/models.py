@@ -322,3 +322,32 @@ class CheckInLog(models.Model):
 
     def __str__(self):
         return f"{self.quantity_returned} units of {self.checkout_log.item.name} returned on {self.return_date.strftime('%Y-%m-%d')}"
+
+
+# ==============================================================================
+# NEW INVENTORY AUDIT LOG MODEL
+# ==============================================================================
+
+class ItemLog(models.Model):
+    """A permanent record of a change in an item's stock quantity."""
+    class Action(models.TextChoices):
+        RECEIVED = 'RECEIVED', 'Received New Stock'
+        DAMAGED = 'DAMAGED', 'Reported Damaged'
+        LOST = 'LOST', 'Reported Lost'
+        CORRECTION_ADD = 'CORR_ADD', 'Manual Correction (Add)'
+        CORRECTION_SUB = 'CORR_SUB', 'Manual Correction (Subtract)'
+
+    item = models.ForeignKey(Item, on_delete=models.CASCADE, related_name="logs")
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name="item_logs")
+    action = models.CharField(max_length=10, choices=Action.choices)
+    
+    # We use a standard IntegerField to allow for negative numbers (e.g., -1 for a damaged item)
+    quantity_change = models.IntegerField()
+    
+    notes = models.TextField(blank=True, help_text="Reason for the stock change.")
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        # Example: "+10 of MQ2 Sensor: Received New Stock by admin"
+        sign = '+' if self.quantity_change > 0 else ''
+        return f"{sign}{self.quantity_change} of {self.item.name}: {self.get_action_display()} by {self.user.username if self.user else 'Unknown'}"

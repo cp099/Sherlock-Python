@@ -1,7 +1,7 @@
 {% extends "inventory/base.html" %}
 
 {% block content %}
-    <p><a href="{% url 'inventory:item_list' section.section_code space.space_code %}">< See all items in "{{ space.name }}"</a></p>
+    <p><a href="{% url 'inventory:item_list' section_code=item.space.section.section_code space_code=item.space.space_code %}">< See all items in "{{ item.space.name }}"</a></p>
     <h1>{{ item.name }}</h1>
 
     <div class="detail-container">
@@ -22,7 +22,6 @@
                 <!-- Updated Quantity Section -->
                 <tr style="font-weight: bold;"><td>Total in Inventory</td><td>{{ item.quantity }}</td></tr>
                 <tr><td>On Loan</td><td>{{ item.checked_out_quantity }}</td></tr>
-                <!-- The "Buffer Stock" row has been removed -->
                 <tr style="font-weight: bold;"><td>Available to Lend</td><td>{{ item.available_quantity }}</td></tr>
                 
                 <tr><td><i>Created at</i></td><td>{{ item.created_at }}</td></tr>
@@ -31,21 +30,48 @@
         </table>
 
         <div class="action-area">
-            <a href="{% url 'inventory:item_update' section.section_code space.space_code item.item_code %}">Edit</a>
-            <form action="{% url 'inventory:item_add_small_to_queue' section.section_code space.space_code item.item_code %}" method="post">
-                {% csrf_token %}
-                <button type="submit">Add small label to print queue</button>
-            </form>
-            <form action="{% url 'inventory:item_add_large_to_queue' section.section_code space.space_code item.item_code %}" method="post">
-                {% csrf_token %}
-                <button type="submit">Add large label to print queue</button>
-            </form>
+            <a href="{% url 'inventory:item_update' section_code=item.space.section.section_code space_code=item.space.space_code item_code=item.item_code %}">Edit Details</a>
+            
+            <!-- NEW ACTION BUTTONS (without org_slug) -->
+            <a href="{% url 'inventory:adjust_stock' section_code=item.space.section.section_code space_code=item.space.space_code item_code=item.item_code action='RECEIVED' %}" class="link-button">Receive Stock</a>
+            <a href="{% url 'inventory:adjust_stock' section_code=item.space.section.section_code space_code=item.space.space_code item_code=item.item_code action='DAMAGED' %}" class="link-button destructive-background">Report Damaged</a>
         </div>
 
-        <!-- ... (Delete section remains unchanged) ... -->
-        <h2 class="destructive">Delete this Item</h2>
+        <hr>
+
+        <!-- NEW INVENTORY HISTORY SECTION -->
+        <h2>Inventory History</h2>
+        {% if not item_logs %}
+            <p>No stock changes have been logged for this item yet.</p>
+        {% else %}
+            <table class="open-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Action</th>
+                        <th>Change</th>
+                        <th>User</th>
+                        <th>Notes</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for log in item_logs %}
+                    <tr>
+                        <td>{{ log.timestamp|date:"d M Y, h:i A" }}</td>
+                        <td>{{ log.get_action_display }}</td>
+                        <td style="font-weight: bold;">{{ log.quantity_change }}</td>
+                        <td>{{ log.user.username|default:"Unknown" }}</td>
+                        <td>{{ log.notes }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% endif %}
+
+        <!-- Delete section remains the same -->
+        <h2 class="destructive" style="margin-top: 2em;">Delete this Item</h2>
         <p>This action is irreversible.</p>
-        <form action="{% url 'inventory:item_delete' section.section_code space.space_code item.item_code %}" method="post">
+        <form action="{% url 'inventory:item_delete' section_code=item.space.section.section_code space_code=item.space.space_code item_code=item.item_code %}" method="post">
             {% csrf_token %}
             <button type="submit" class="destructive-background" onclick="return confirm('Are you sure you want to delete this item?');">I understand the consequences, delete this item</button>
         </form>

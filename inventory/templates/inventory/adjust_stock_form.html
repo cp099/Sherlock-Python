@@ -1,0 +1,16 @@
+{% extends "inventory/base.html" %}
+
+{% block content %}
+    <p><a href="{{ item.get_absolute_url }}">< Back to "{{ item.name }}"</a></p>
+    <h1>{{ page_title }} <i>"{{ item.name }}"</i></h1>
+
+    <div class="detail-container">
+        <p>Current Quantity in Inventory: <strong>{{ item.quantity }}</strong></p>
+        <hr>
+        <form method="post">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit">Confirm Adjustment</button>
+        </form>
+    </div>
+{% endblock %}

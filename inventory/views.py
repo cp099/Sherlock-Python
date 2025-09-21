@@ -13,8 +13,8 @@ from django.utils import timezone
 from django.db.models import Q, Sum, Max, F, Count
 from django.db.models.functions import TruncDay
 
-from .models import Section, Space, Item, PrintQueue, PrintQueueItem, SearchEntry, Student, CheckoutLog, CheckInLog
-from .forms import SectionForm, SpaceForm, ItemForm, StudentForm
+from .models import Section, Space, Item, PrintQueue, PrintQueueItem, SearchEntry, Student, CheckoutLog, CheckInLog, ItemLog
+from .forms import SectionForm, SpaceForm, ItemForm, StudentForm, StockAdjustmentForm
 
 import hashlib
 import base64
@@ -254,15 +254,23 @@ def item_list(request, section_code, space_code):
     section = get_object_or_404(Section, section_code=section_code)
     space = get_object_or_404(Space, section=section, space_code=space_code)
     items = Item.objects.filter(space=space).order_by('item_code')
+    item_logs = ItemLog.objects.filter(item=item).order_by('-timestamp')
     context = {'section': section, 'space': space, 'items': items}
     return render(request, 'inventory/item_list.html', context)
 
 @login_required
 def item_detail(request, section_code, space_code, item_code):
+    # This lookup is simpler and ensures we get all the related objects
     section = get_object_or_404(Section, section_code=section_code)
     space = get_object_or_404(Space, section=section, space_code=space_code)
     item = get_object_or_404(Item, space=space, item_code=item_code)
-    context = {'section': section, 'space': space, 'item': item}
+    item_logs = ItemLog.objects.filter(item=item).order_by('-timestamp')
+    context = {
+        'section': section,
+        'space': space,
+        'item': item,
+        'item_logs': item_logs,
+    }
     return render(request, 'inventory/item_detail.html', context)
 
 @login_required
@@ -309,6 +317,67 @@ def item_delete(request, section_code, space_code, item_code):
         item.delete()
         return redirect('inventory:item_list', section_code=section.section_code, space_code=space.space_code)
     return redirect('inventory:item_detail', section_code=section.section_code, space_code=space.space_code, item_code=item.item_code)
+
+@login_required
+def adjust_stock(request, section_code, space_code, item_code, action):
+    # This query is now simpler, without any organization logic.
+    item = get_object_or_404(Item,
+        space__section__section_code=section_code,
+        space__space_code=space_code,
+        item_code=item_code
+    )
+
+    if request.method == 'POST':
+        form = StockAdjustmentForm(request.POST)
+        if form.is_valid():
+            quantity = form.cleaned_data['quantity']
+            notes = form.cleaned_data['notes']
+            
+            # Determine if we are adding or subtracting
+            if action in ['RECEIVED', 'CORR_ADD']:
+                item.quantity += quantity
+                quantity_change = quantity
+            elif action in ['DAMAGED', 'LOST', 'CORR_SUB']:
+                if quantity > item.quantity:
+                    messages.error(request, f"Cannot remove {quantity} units. Only {item.quantity} are in stock.")
+                    return redirect(request.path_info)
+                item.quantity -= quantity
+                quantity_change = -quantity
+            else: # Failsafe for invalid action
+                messages.error(request, "Invalid stock adjustment action.")
+                return redirect(item.get_absolute_url())
+
+            item.save()
+
+            # Create the permanent log entry
+            ItemLog.objects.create(
+                item=item,
+                user=request.user,
+                action=action,
+                quantity_change=quantity_change,
+                notes=notes
+            )
+            
+            messages.success(request, "Stock quantity has been updated successfully.")
+            return redirect(item.get_absolute_url())
+    else:
+        form = StockAdjustmentForm()
+
+    # Create a user-friendly title for the page
+    action_titles = {
+        'RECEIVED': 'Receive New Stock for',
+        'DAMAGED': 'Report Damaged Stock for',
+        'LOST': 'Report Lost Stock for',
+        'CORR_ADD': 'Make a Positive Stock Correction for',
+        'CORR_SUB': 'Make a Negative Stock Correction for',
+    }
+    
+    context = {
+        'form': form,
+        'item': item,
+        'page_title': action_titles.get(action, 'Adjust Stock for')
+    }
+    return render(request, 'inventory/adjust_stock_form.html', context)
 
 def _add_item_to_queue(request, item, label_type):
     print_queue, _ = PrintQueue.objects.get_or_create(user=request.user)
