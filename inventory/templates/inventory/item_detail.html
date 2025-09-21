@@ -1,79 +1,124 @@
 {% extends "inventory/base.html" %}
+{% load inventory_extras %}
 
 {% block content %}
     <p><a href="{% url 'inventory:item_list' section_code=item.space.section.section_code space_code=item.space.space_code %}">< See all items in "{{ item.space.name }}"</a></p>
     <h1>{{ item.name }}</h1>
 
-    <div class="detail-container">
-        <div class="label-card">
-            <h3>Item Barcode</h3>
-            {{ item.generate_barcode_svg|safe }}
-        </div>
+    <div class="item-detail-layout">
+        <!-- === LEFT COLUMN (MAIN DETAILS) === -->
+        <div class="item-detail-main-column">
+            <div class="label-card">
+                <h3>Item Barcode</h3>
+                {{ item.generate_barcode_svg|safe }}
+            </div>
 
-        <table class="open-table">
-            <thead>
-                <tr><th>Parameter</th><th>Value</th></tr>
-            </thead>
-            <tbody>
-                <tr><td><i>Item Code</i></td><td>{{ item.item_code }}</td></tr>
-                <tr><td><i>Name</i></td><td>{{ item.name }}</td></tr>
-                <tr><td><i>Description</i></td><td>{{ item.description|default:"--" }}</td></tr>
-                
-                <!-- Updated Quantity Section -->
-                <tr style="font-weight: bold;"><td>Total in Inventory</td><td>{{ item.quantity }}</td></tr>
-                <tr><td>On Loan</td><td>{{ item.checked_out_quantity }}</td></tr>
-                <tr style="font-weight: bold;"><td>Available to Lend</td><td>{{ item.available_quantity }}</td></tr>
-                
-                <tr><td><i>Created at</i></td><td>{{ item.created_at }}</td></tr>
-                <tr><td><i>Last updated at</i></td><td>{{ item.updated_at }}</td></tr>
-            </tbody>
-        </table>
-
-        <div class="action-area">
-            <a href="{% url 'inventory:item_update' section_code=item.space.section.section_code space_code=item.space.space_code item_code=item.item_code %}">Edit Details</a>
-            
-            <!-- NEW ACTION BUTTONS (without org_slug) -->
-            <a href="{% url 'inventory:adjust_stock' section_code=item.space.section.section_code space_code=item.space.space_code item_code=item.item_code action='RECEIVED' %}" class="link-button">Receive Stock</a>
-            <a href="{% url 'inventory:adjust_stock' section_code=item.space.section.section_code space_code=item.space.space_code item_code=item.item_code action='DAMAGED' %}" class="link-button destructive-background">Report Damaged</a>
-        </div>
-
-        <hr>
-
-        <!-- NEW INVENTORY HISTORY SECTION -->
-        <h2>Inventory History</h2>
-        {% if not item_logs %}
-            <p>No stock changes have been logged for this item yet.</p>
-        {% else %}
             <table class="open-table">
                 <thead>
-                    <tr>
-                        <th>Date</th>
-                        <th>Action</th>
-                        <th>Change</th>
-                        <th>User</th>
-                        <th>Notes</th>
-                    </tr>
+                    <tr><th>Parameter</th><th>Value</th></tr>
                 </thead>
                 <tbody>
-                    {% for log in item_logs %}
-                    <tr>
-                        <td>{{ log.timestamp|date:"d M Y, h:i A" }}</td>
-                        <td>{{ log.get_action_display }}</td>
-                        <td style="font-weight: bold;">{{ log.quantity_change }}</td>
-                        <td>{{ log.user.username|default:"Unknown" }}</td>
-                        <td>{{ log.notes }}</td>
-                    </tr>
-                    {% endfor %}
+                    <tr><td><i>Item Code</i></td><td>{{ item.item_code }}</td></tr>
+                    <tr><td><i>Name</i></td><td>{{ item.name }}</td></tr>
+                    <tr><td><i>Description</i></td><td>{{ item.description|default:"--" }}</td></tr>
+                    <tr style="font-weight: bold;"><td>Total in Inventory</td><td>{{ item.quantity }}</td></tr>
+                    <tr><td>On Loan</td><td>{{ item.checked_out_quantity }}</td></tr>
+                    <tr style="font-weight: bold;"><td>Available to Lend</td><td>{{ item.available_quantity }}</td></tr>
+                    <tr><td><i>Created at</i></td><td>{{ item.created_at }}</td></tr>
+                    <tr><td><i>Last updated at</i></td><td>{{ item.updated_at }}</td></tr>
                 </tbody>
             </table>
-        {% endif %}
 
-        <!-- Delete section remains the same -->
-        <h2 class="destructive" style="margin-top: 2em;">Delete this Item</h2>
-        <p>This action is irreversible.</p>
-        <form action="{% url 'inventory:item_delete' section_code=item.space.section.section_code space_code=item.space.space_code item_code=item.item_code %}" method="post">
-            {% csrf_token %}
-            <button type="submit" class="destructive-background" onclick="return confirm('Are you sure you want to delete this item?');">I understand the consequences, delete this item</button>
-        </form>
+            <div class="action-area">
+                <a href="{% url 'inventory:item_update' section_code=item.space.section.section_code space_code=item.space.space_code item_code=item.item_code %}">Edit Details</a>
+                <a href="{% url 'inventory:adjust_stock' section_code=item.space.section.section_code space_code=item.space.space_code item_code=item.item_code action='RECEIVED' %}" class="link-button">Receive Stock</a>
+                <a href="{% url 'inventory:adjust_stock' section_code=item.space.section.section_code space_code=item.space.space_code item_code=item.item_code action='DAMAGED' %}" class="link-button destructive-background">Report Damaged</a>
+            </div>
+
+            <hr>
+
+            <h2 class="destructive" style="margin-top: 2em;">Delete this Item</h2>
+            <p>This action is irreversible.</p>
+            <form action="{% url 'inventory:item_delete' section_code=item.space.section.section_code space_code=item.space.space_code item_code=item.item_code %}" method="post">
+                {% csrf_token %}
+                <button type="submit" class="destructive-background" onclick="return confirm('Are you sure you want to delete this item?');">I understand the consequences, delete this item</button>
+            </form>
+        </div>
+
+        <!-- === RIGHT COLUMN (LOAN HISTORY AUDIT TRAIL) === -->
+        <div class="item-detail-history-column">
+            <h2>Loan History Audit Trail</h2>
+            <div class="history-filter-form">
+                <form method="get" style="display:inline-block;"><button type="submit" name="filter" value="week">Last 7 Days</button></form>
+                <form method="get" style="display:inline-block;"><button type="submit" name="filter" value="month">Last 30 Days</button></form>
+                <form method="get" style="display:inline-block;"><button type="submit" name="filter" value="year">Last Year</button></form>
+                <a href="{{ request.path }}">Show All</a>
+                <form method="get" style="margin-top: 10px;">
+                    <input type="hidden" name="filter" value="custom">
+                    <input type="date" name="start_date"> to <input type="date" name="end_date">
+                    <button type="submit">Filter Range</button>
+                </form>
+            </div>
+
+            {% if not item_loan_history %}
+                <p>This item has never been checked out.</p>
+            {% else %}
+                <div class="log-container-4-rows">
+                    <table class="open-table">
+                        <thead>
+                            <tr><th>Student</th><th>Checked Out</th><th>Returned On</th></tr>
+                        </thead>
+                        <tbody>
+                            {% for log in item_loan_history %}
+                            <tr>
+                                <td><a href="{% url 'inventory:student_detail' log.student.id %}">{{ log.student.name }}</a></td>
+                                <td>{{ log.checkout_date|date:"d M Y" }}</td>
+                                <td>{{ log.return_date|date:"d M Y"|default:"Still on loan" }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% endif %}
+
+            <!-- === NEW INVENTORY HISTORY SECTION (MOVED HERE) === -->
+            <h2 style="margin-top: 2em;">Inventory History</h2>
+            
+            <!-- New Filter Form for Inventory History -->
+            <div class="history-filter-form">
+                <form method="get" style="display:inline-block;"><button type="submit" name="inv_filter" value="week">Last 7 Days</button></form>
+                <form method="get" style="display:inline-block;"><button type="submit" name="inv_filter" value="month">Last 30 Days</button></form>
+                <form method="get" style="display:inline-block;"><button type="submit" name="inv_filter" value="year">Last Year</button></form>
+                <a href="{{ request.path }}">Show All</a>
+                <form method="get" style="margin-top: 10px;">
+                    <input type="hidden" name="inv_filter" value="custom">
+                    <input type="date" name="inv_start_date"> to <input type="date" name="inv_end_date">
+                    <button type="submit">Filter Range</button>
+                </form>
+            </div>
+
+            {% if not item_logs %}
+                <p>No stock changes have been logged for this item yet.</p>
+            {% else %}
+                <div class="log-container-3-rows">
+                    <table class="open-table">
+                        <thead>
+                            <tr><th>Date</th><th>Action</th><th>Change</th><th>User</th><th>Notes</th></tr>
+                        </thead>
+                        <tbody>
+                            {% for log in item_logs %}
+                            <tr>
+                                <td>{{ log.timestamp|date:"d M Y, h:i A" }}</td>
+                                <td>{{ log.get_action_display }}</td>
+                                <td style="font-weight: bold;">{{ log.quantity_change }}</td>
+                                <td>{{ log.user.username|default:"Unknown" }}</td>
+                                <td>{{ log.notes }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% endif %}
+        </div>
     </div>
 {% endblock %}

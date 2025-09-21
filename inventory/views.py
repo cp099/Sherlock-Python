@@ -254,22 +254,47 @@ def item_list(request, section_code, space_code):
     section = get_object_or_404(Section, section_code=section_code)
     space = get_object_or_404(Space, section=section, space_code=space_code)
     items = Item.objects.filter(space=space).order_by('item_code')
-    item_logs = ItemLog.objects.filter(item=item).order_by('-timestamp')
-    context = {'section': section, 'space': space, 'items': items}
+    
+    context = {
+        'section': section,
+        'space': space,
+        'items': items,
+    }
     return render(request, 'inventory/item_list.html', context)
 
 @login_required
 def item_detail(request, section_code, space_code, item_code):
-    # This lookup is simpler and ensures we get all the related objects
     section = get_object_or_404(Section, section_code=section_code)
     space = get_object_or_404(Space, section=section, space_code=space_code)
     item = get_object_or_404(Item, space=space, item_code=item_code)
+    
+    # Correctly fetch logs for THIS specific item
     item_logs = ItemLog.objects.filter(item=item).order_by('-timestamp')
+    
+    # Fetch loan history for THIS specific item
+    item_loan_history = CheckoutLog.objects.filter(item=item).select_related('student').order_by('-checkout_date')
+    
+    # --- NEW INVENTORY HISTORY LOGIC ---
+    item_logs = ItemLog.objects.filter(item=item).order_by('-timestamp')
+    inv_filter_type = request.GET.get('inv_filter', '')
+    if inv_filter_type == 'week':
+        item_logs = item_logs.filter(timestamp__gte=timezone.now() - timedelta(days=7))
+    elif inv_filter_type == 'month':
+        item_logs = item_logs.filter(timestamp__gte=timezone.now() - timedelta(days=30))
+    elif inv_filter_type == 'year':
+        item_logs = item_logs.filter(timestamp__gte=timezone.now() - timedelta(days=365))
+    elif inv_filter_type == 'custom':
+        start_date = request.GET.get('inv_start_date')
+        end_date = request.GET.get('inv_end_date')
+        if start_date and end_date:
+            item_logs = item_logs.filter(timestamp__range=[start_date, end_date])
+
     context = {
         'section': section,
         'space': space,
         'item': item,
         'item_logs': item_logs,
+        'item_loan_history': item_loan_history,
     }
     return render(request, 'inventory/item_detail.html', context)
 

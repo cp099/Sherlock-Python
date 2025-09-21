@@ -609,3 +609,76 @@ main {
   border-radius: 12px;
   padding: 20px;
 }
+
+/* Styles for the two-column layout on the item detail page */
+.item-detail-layout {
+  display: flex;
+  gap: 40px; /* Space between the two columns */
+  align-items: flex-start;
+}
+
+.item-detail-main-column {
+  flex-basis: 450px; /* Give the main column a fixed, narrower width */
+  min-width: 400px;
+}
+
+
+.item-detail-history-column {
+  flex: 1;
+  overflow: hidden;
+}
+
+/* Styles for the scrollable log container */
+.log-container {
+  overflow-y: auto;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  position: relative; /* Required for the sticky header to work */
+}
+
+.log-container .open-table th {
+  position: sticky; /* The magic for the frozen header */
+  top: 0;
+  background-color: white; /* Prevents text from showing through when scrolling */
+  z-index: 10;
+}
+
+/* Styles for the filter form */
+.history-filter-form {
+  margin-bottom: 1em;
+  padding: 10px;
+  background-color: #f7f7f7;
+  border-radius: 8px;
+}
+.history-filter-form form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+/* New specific styles for scrollable log containers */
+.log-container-3-rows {
+  height: 200px; /* Adjust this value to perfectly fit your header + 3 rows */
+  overflow-y: auto;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  position: relative;
+}
+
+.log-container-4-rows {
+  height: 250px; /* Adjust this value to perfectly fit your header + 4 rows */
+  overflow-y: auto;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  position: relative;
+}
+
+/* The sticky header logic remains the same but will target both new classes */
+.log-container-3-rows .open-table th,
+.log-container-4-rows .open-table th {
+  position: sticky;
+  top: 0;
+  background-color: white;
+  z-index: 10;
+}
