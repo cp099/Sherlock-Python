@@ -22,6 +22,9 @@
  
     <!-- 5. Hyperscript for client-side scripting -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- 6. HTML5 QR Code Scanner -->
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
 </head>
 <body>
 
@@ -61,6 +64,11 @@
                     <span class="navigation-category-title">Tools</span>
                 </div>
                 <div class="navigation-object">
+                    <a href="#" id="universal-scan-button" class="navigation-link">
+                        <i class="fa-solid fa-qrcode"></i> Universal Scan
+                    </a>
+                </div>
+                <div class="navigation-object">
                     <a class="navigation-link" href="{% url 'inventory:search' %}">Search</a>
                 </div>
                 <div class="navigation-object">
@@ -94,6 +102,10 @@
     {% if user.is_authenticated %}
         </main>
     {% endif %}
+
+    {% include "inventory/partials/scanner_modal.html" %}
+
+    <script src="{% static 'inventory/js/scanner.js' %}"></script>
 
 </body>
 </html>

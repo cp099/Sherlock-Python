@@ -19,9 +19,18 @@
                hx-target="#item-search-results"
                hx-swap="innerHTML">
         
-        <!-- The quantity input has been REMOVED from this form -->
         
         <button type="submit" name="add_item">Add Item</button>
+
+        <button type="button" id="scan-item-button" class="link-button" style="padding: 8px 12px; font-size: 16px;">
+            <i class="fa-solid fa-camera"></i> Scan
+        </button>
+    </form>
+
+    <form method="post" id="scanner-form" style="display: none;">
+        {% csrf_token %}
+        <input type="hidden" name="barcode" id="scanner-barcode-input">
+        <input type="hidden" name="add_item_from_scan" value="true">
     </form>
     
     <div id="item-search-results"></div>

@@ -6,6 +6,10 @@ from . import views
 app_name = 'inventory'
 
 urlpatterns = [
+
+    # Universal Lookup
+    path('lookup/', views.universal_lookup, name='lookup'),
+
     # Dashboard
     path('dashboard/', views.dashboard, name='dashboard'),
     

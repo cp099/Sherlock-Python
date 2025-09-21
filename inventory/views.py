@@ -43,6 +43,52 @@ def signup(request):
         form = UserCreationForm()
     return render(request, 'registration/signup.html', {'form': form})
 
+def universal_lookup(request):
+    """
+    Receives a scanned code and redirects to the appropriate
+    Item, Space, or Section detail page.
+    """
+    code = request.GET.get('code', '').strip()
+    
+    if not code:
+        messages.error(request, "No code was provided to look up.")
+        return redirect('inventory:dashboard') # A safe fallback
+
+    # --- INTELLIGENT LOOKUP LOGIC ---
+    try:
+        # 1. First, try to find an Item by its 12-digit barcode
+        if code.isdigit() and len(code) >= 12:
+            item = Item.objects.get(barcode=code[:12])
+            messages.success(request, f"Found Item: {item.name}")
+            return redirect(item.get_absolute_url())
+
+        # 2. If not a barcode, try to parse it as a "SHERLOCK" QR Code
+        if code.startswith('SHERLOCK;'):
+            parts = code.split(';')
+            section_code_str = next((p.split(':')[1] for p in parts if p.startswith('SECTIONCODE:')), None)
+            space_code_str = next((p.split(':')[1] for p in parts if p.startswith('SPACECODE:')), None)
+
+            if section_code_str:
+                section_code = int(section_code_str)
+                if space_code_str: # If both space and section are present
+                    space_code = int(space_code_str)
+                    space = get_object_or_404(Space, section__section_code=section_code, space_code=space_code)
+                    messages.success(request, f"Found Space: {space.name}")
+                    return redirect(space.get_absolute_url())
+                else: # If only a section is present
+                    section = get_object_or_404(Section, section_code=section_code)
+                    messages.success(request, f"Found Section: {section.name}")
+                    return redirect(section.get_absolute_url())
+        
+        # 3. If no match was found
+        messages.error(request, f"Could not find any Item, Section, or Space matching the code.")
+        # Try to redirect back to the page the user came from
+        return redirect(request.META.get('HTTP_REFERER', 'inventory:dashboard'))
+
+    except (Item.DoesNotExist, Section.DoesNotExist, Space.DoesNotExist):
+        messages.error(request, f"Could not find any Item, Section, or Space matching the code.")
+        return redirect(request.META.get('HTTP_REFERER', 'inventory:dashboard'))
+
 # ==================================
 # DASHBOARD VIEWS
 # ==================================
@@ -698,8 +744,6 @@ def checkout_find_student(request):
 @login_required
 def checkout_session(request, student_id):
     student = get_object_or_404(Student, id=student_id)
-    
-    # Session now stores a dictionary: {item_id: quantity}
     checkout_items = request.session.get('checkout_items', {})
     
     # Prepare items for the template
@@ -714,11 +758,18 @@ def checkout_session(request, student_id):
             items_in_session_details.append({'item': item, 'quantity': quantity})
 
     if request.method == 'POST':
-        # --- LOGIC FOR ADDING A NEW ITEM ---
-        if 'add_item' in request.POST:
+        item_to_add = None
+        quantity_to_add = 1
+        query = ''
+
+        # --- NEW LOGIC: Determine if the submission is from the scanner or manual form ---
+        if 'add_item_from_scan' in request.POST:
+            query = request.POST.get('barcode', '').strip()
+        elif 'add_item' in request.POST:
             query = request.POST.get('query', '').strip()
-            item_to_add = None
-            
+
+        # If a query exists (from either form), proceed with finding the item
+        if query:
             # First, try to treat the query as a barcode
             if query.isdigit() and len(query) >= 12:
                 try:
@@ -727,21 +778,18 @@ def checkout_session(request, student_id):
                     item_code = int(query[8:12])
                     item_to_add = Item.objects.get(space__section__section_code=section_code, space__space_code=space_code, item_code=item_code)
                 except (Item.DoesNotExist, ValueError):
-                    pass # It's not a valid barcode, so we'll try searching by name next
-
-            # If it wasn't a valid barcode, try searching by name
-            if not item_to_add and query:
+                    pass
+            
+            # If not a barcode, try as a name
+            if not item_to_add:
                 results = Item.objects.filter(name__icontains=query)
                 if results.count() == 1:
                     item_to_add = results.first()
                 elif results.count() > 1:
                     messages.error(request, f"Multiple items found for '{query}'. Please be more specific or use the barcode.")
-                # If count is 0, we'll fall through to the final error message
             
-            # Now, process the item if we found one
+            # Process the found item
             if item_to_add:
-                # This part now defaults to adding a quantity of 1
-                quantity_to_add = 1 
                 current_in_session = checkout_items.get(str(item_to_add.id), 0)
                 requested_total = current_in_session + quantity_to_add
                 if requested_total > item_to_add.available_quantity:
@@ -750,10 +798,10 @@ def checkout_session(request, student_id):
                     checkout_items[str(item_to_add.id)] = requested_total
                     request.session['checkout_items'] = checkout_items
                     messages.success(request, f"Added 1 x '{item_to_add.name}' to the list.")
-            elif query:
+            else:
                 messages.error(request, f"ERROR: No item found matching '{query}'.")
 
-        # --- LOGIC FOR COMPLETING THE CHECKOUT ---
+        # --- LOGIC FOR COMPLETING THE CHECKOUT (unchanged) ---
         elif 'complete_checkout' in request.POST:
             if not checkout_items:
                 messages.error(request, "Cannot complete checkout with no items.")
