@@ -87,5 +87,9 @@ If you want to run the application in a development environment:
 *   **Server:** Waitress
 *   **Packaging:** PyInstaller
 
+## ⚖️ License
+
+This project is licensed under the Apache License, Version 2.0. See the [LICENSE](LICENSE) file for the full license text and the [NOTICE](NOTICE) file for attribution details.
+
 ---
 This project is a testament to the power of iterative development and a great example of modernizing an existing application with new technologies and features.
