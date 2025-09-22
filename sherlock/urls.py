@@ -1,20 +1,17 @@
 # sherlock-python/sherlock/urls.py
-
 from django.contrib import admin
 from django.urls import path, include
-from inventory import views as inventory_views # We still need this for the landing page
+from inventory import views as inventory_views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
 
-    # The root URL points to our landing page for logged-out users
-    path('', inventory_views.landing_page, name='landing_page'),
+    # The root URL points to our landing page.
+    path('', inventory_views.landing_page, name='homepage'),
 
-    # User Authentication (Login, Logout, Signup)
     path('accounts/signup/', inventory_views.signup, name='signup'),
     path('accounts/', include('django.contrib.auth.urls')),
 
-    # All other app-specific URLs (including our new /dashboard/)
-    # will be handled by the inventory app's urls.py file.
+    # All other app-specific URLs
     path('', include('inventory.urls')),
 ]
