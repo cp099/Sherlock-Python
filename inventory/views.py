@@ -26,9 +26,8 @@ def landing_page(request):
     Redirects logged-in users directly to the main sections list.
     """
     if request.user.is_authenticated:
-        return redirect('inventory:section_list') # Redirect logged-in users
+        return redirect('inventory:section_list')
     
-    # Show the new landing page to guests
     return render(request, 'inventory/landing_page.html')
 
 def signup(request):
@@ -36,9 +35,8 @@ def signup(request):
         form = UserCreationForm(request.POST)
         if form.is_valid():
             user = form.save()
-            # Log the user in directly after successful registration
             login(request, user)
-            return redirect('inventory:section_list') # Redirect to the main sections page
+            return redirect('inventory:section_list')
     else:
         form = UserCreationForm()
     return render(request, 'registration/signup.html', {'form': form})
@@ -52,17 +50,14 @@ def universal_lookup(request):
     
     if not code:
         messages.error(request, "No code was provided to look up.")
-        return redirect('inventory:dashboard') # A safe fallback
+        return redirect('inventory:dashboard')
 
-    # --- INTELLIGENT LOOKUP LOGIC ---
     try:
-        # 1. First, try to find an Item by its 12-digit barcode
         if code.isdigit() and len(code) >= 12:
             item = Item.objects.get(barcode=code[:12])
             messages.success(request, f"Found Item: {item.name}")
             return redirect(item.get_absolute_url())
 
-        # 2. If not a barcode, try to parse it as a "SHERLOCK" QR Code
         if code.startswith('SHERLOCK;'):
             parts = code.split(';')
             section_code_str = next((p.split(':')[1] for p in parts if p.startswith('SECTIONCODE:')), None)
@@ -70,28 +65,22 @@ def universal_lookup(request):
 
             if section_code_str:
                 section_code = int(section_code_str)
-                if space_code_str: # If both space and section are present
+                if space_code_str: 
                     space_code = int(space_code_str)
                     space = get_object_or_404(Space, section__section_code=section_code, space_code=space_code)
                     messages.success(request, f"Found Space: {space.name}")
                     return redirect(space.get_absolute_url())
-                else: # If only a section is present
+                else: 
                     section = get_object_or_404(Section, section_code=section_code)
                     messages.success(request, f"Found Section: {section.name}")
                     return redirect(section.get_absolute_url())
         
-        # 3. If no match was found
         messages.error(request, f"Could not find any Item, Section, or Space matching the code.")
-        # Try to redirect back to the page the user came from
         return redirect(request.META.get('HTTP_REFERER', 'inventory:dashboard'))
 
     except (Item.DoesNotExist, Section.DoesNotExist, Space.DoesNotExist):
         messages.error(request, f"Could not find any Item, Section, or Space matching the code.")
         return redirect(request.META.get('HTTP_REFERER', 'inventory:dashboard'))
-
-# ==================================
-# DASHBOARD VIEWS
-# ==================================
 
 @login_required
 def dashboard(request):
@@ -101,25 +90,20 @@ def dashboard(request):
     start_of_month = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
     three_days_from_now = now + timedelta(days=3)
 
-    # --- 1. METRIC CARD QUERIES (Unchanged) ---
     total_items_on_loan = CheckoutLog.objects.filter(return_date__isnull=True).aggregate(total=Sum('quantity'))['total'] or 0
     overdue_items_count = CheckoutLog.objects.filter(return_date__isnull=True, due_date__lt=now).count()
     low_stock_items_count = Item.objects.filter(quantity__lte=5).count()
     new_students_count = Student.objects.filter(created_at__gte=start_of_month).count()
 
-    # --- 2. ACTIVITY FEED QUERIES (Unchanged) ---
     recently_checked_out = CheckoutLog.objects.filter(checkout_date__gte=now.replace(hour=0, minute=0), return_date__isnull=True).select_related('item', 'student').order_by('-checkout_date')[:5]
     items_due_soon = CheckoutLog.objects.filter(return_date__isnull=True, due_date__gte=now, due_date__lte=three_days_from_now).select_related('item', 'student').order_by('due_date')[:5]
 
-    # --- 3. NEW CHART QUERIES ---
-    # Loan activity for the last 7 days
     days = [(today - timedelta(days=i)) for i in range(6, -1, -1)]
     loan_activity_qs = CheckoutLog.objects.filter(checkout_date__date__gte=one_week_ago).annotate(day=TruncDay('checkout_date')).values('day').annotate(count=Count('id')).order_by('day')
     loan_activity_dict = {entry['day'].date(): entry['count'] for entry in loan_activity_qs}
     loan_activity_data = [loan_activity_dict.get(day, 0) for day in days]
-    loan_activity_labels = [day.strftime("%a") for day in days] # Mon, Tue, Wed
+    loan_activity_labels = [day.strftime("%a") for day in days] 
 
-    # Top 5 most popular items
     popular_items_qs = CheckoutLog.objects.values('item__name').annotate(count=Count('item')).order_by('-count')[:5]
     popular_items_labels = [item['item__name'] for item in popular_items_qs]
     popular_items_data = [item['count'] for item in popular_items_qs]
@@ -138,9 +122,6 @@ def dashboard(request):
     }
     return render(request, 'inventory/dashboard.html', context)
 
-# ==================================
-# SECTION VIEWS
-# ==================================
 @login_required
 def section_list(request):
     sections = Section.objects.all().order_by('section_code')
@@ -153,9 +134,6 @@ def section_detail(request, section_code):
     context = {'section': section}
     return render(request, 'inventory/section_detail.html', context)
 
-# ... [All other Section, Space, and Item views remain here, unchanged] ...
-# ... I am omitting them for brevity, but they should be in your file ...
-
 @login_required
 def section_create(request):
     if request.method == 'POST':
@@ -164,7 +142,6 @@ def section_create(request):
             section = form.save()
             return redirect('inventory:section_detail', section_code=section.section_code)
     else:
-        # --- NEW LOGIC: Find the next available section code ---
         last_section = Section.objects.all().aggregate(max_code=Max('section_code'))
         next_code = (last_section['max_code'] or 0) + 1
         form = SectionForm(initial={'section_code': next_code})
@@ -213,9 +190,6 @@ def section_add_to_queue(request, section_code):
             queue_item.save()
     return redirect('inventory:section_detail', section_code=section.section_code)
 
-# ==================================
-# SPACE VIEWS
-# ==================================
 @login_required
 def space_list(request, section_code):
     section = get_object_or_404(Section, section_code=section_code)
@@ -246,7 +220,7 @@ def space_create(request, section_code):
         form = SpaceForm(initial={'space_code': next_code})
     
     context = {'form': form, 'section': section}
-    return render(request, 'inventory/space_form.html', context) # Corrected template
+    return render(request, 'inventory/space_form.html', context) 
 
 @login_required
 def space_update(request, section_code, space_code):
@@ -292,9 +266,7 @@ def space_add_to_queue(request, section_code, space_code):
             queue_item.save()
     return redirect('inventory:space_detail', section_code=section.section_code, space_code=space.space_code)
 
-# ==================================
-# ITEM VIEWS
-# ==================================
+
 @login_required
 def item_list(request, section_code, space_code):
     section = get_object_or_404(Section, section_code=section_code)
@@ -314,13 +286,10 @@ def item_detail(request, section_code, space_code, item_code):
     space = get_object_or_404(Space, section=section, space_code=space_code)
     item = get_object_or_404(Item, space=space, item_code=item_code)
     
-    # Correctly fetch logs for THIS specific item
     item_logs = ItemLog.objects.filter(item=item).order_by('-timestamp')
     
-    # Fetch loan history for THIS specific item
     item_loan_history = CheckoutLog.objects.filter(item=item).select_related('student').order_by('-checkout_date')
-    
-    # --- NEW INVENTORY HISTORY LOGIC ---
+
     item_logs = ItemLog.objects.filter(item=item).order_by('-timestamp')
     inv_filter_type = request.GET.get('inv_filter', '')
     if inv_filter_type == 'week':
@@ -356,7 +325,6 @@ def item_create(request, section_code, space_code):
             item.save()
             return redirect('inventory:item_detail', section_code=section.section_code, space_code=space.space_code, item_code=item.item_code)
     else:
-        # --- NEW LOGIC: Find the next available item code within this space ---
         last_item = Item.objects.filter(space=space).aggregate(max_code=Max('item_code'))
         next_code = (last_item['max_code'] or 0) + 1
         form = ItemForm(initial={'item_code': next_code})
@@ -391,7 +359,6 @@ def item_delete(request, section_code, space_code, item_code):
 
 @login_required
 def adjust_stock(request, section_code, space_code, item_code, action):
-    # This query is now simpler, without any organization logic.
     item = get_object_or_404(Item,
         space__section__section_code=section_code,
         space__space_code=space_code,
@@ -404,7 +371,6 @@ def adjust_stock(request, section_code, space_code, item_code, action):
             quantity = form.cleaned_data['quantity']
             notes = form.cleaned_data['notes']
             
-            # Determine if we are adding or subtracting
             if action in ['RECEIVED', 'CORR_ADD']:
                 item.quantity += quantity
                 quantity_change = quantity
@@ -414,7 +380,7 @@ def adjust_stock(request, section_code, space_code, item_code, action):
                     return redirect(request.path_info)
                 item.quantity -= quantity
                 quantity_change = -quantity
-            else: # Failsafe for invalid action
+            else:
                 messages.error(request, "Invalid stock adjustment action.")
                 return redirect(item.get_absolute_url())
 
@@ -434,7 +400,6 @@ def adjust_stock(request, section_code, space_code, item_code, action):
     else:
         form = StockAdjustmentForm()
 
-    # Create a user-friendly title for the page
     action_titles = {
         'RECEIVED': 'Receive New Stock for',
         'DAMAGED': 'Report Damaged Stock for',
@@ -483,12 +448,8 @@ def item_add_large_to_queue(request, section_code, space_code, item_code):
         _add_item_to_queue(request, item, 'large')
     return redirect('inventory:item_detail', section_code=section_code, space_code=space_code, item_code=item_code)
 
-# ==================================
-# NEW STUDENT VIEWS (CRUD)
-# ==================================
 @login_required
 def student_list(request):
-    # Base query, always sorted by name
     students_query = Student.objects.all().order_by('name')
 
     distinct_classes = Student.objects.values_list('student_class', flat=True).distinct().order_by('student_class')
@@ -512,7 +473,6 @@ def student_detail(request, student_id):
         return_date__isnull=True
     ).order_by('-checkout_date')
 
-    # Get the complete history of all returned items
     loan_history = CheckoutLog.objects.filter(
         student=student,
         return_date__isnull=False
@@ -556,12 +516,8 @@ def student_delete(request, student_id):
     if request.method == 'POST':
         student.delete()
         return redirect('inventory:student_list')
-    # If not POST, just redirect back to the detail page.
     return redirect('inventory:student_detail', student_id=student.id)
 
-# ==================================
-# Print Shop & Queue Views
-# ==================================
 @login_required
 def print_queue(request):
     queue, _ = PrintQueue.objects.get_or_create(user=request.user)
@@ -608,10 +564,6 @@ def print_page(request):
     }
     return render(request, 'inventory/print_page.html', context)
 
-# ==================================
-# Search View
-# ==================================
-
 @login_required
 def live_unified_student_search(request):
     """
@@ -620,7 +572,7 @@ def live_unified_student_search(request):
     """
     student_query = request.GET.get('student_query', '').strip()
     student_results = None
-    if len(student_query) >= 1: # Start searching from the first character
+    if len(student_query) >= 1: 
         student_results = Student.objects.filter(
             Q(name__icontains=student_query) | Q(admission_number__icontains=student_query)
         ).order_by('student_class', 'name')
@@ -640,13 +592,9 @@ def live_unified_item_search(request):
     item_query = request.GET.get('item_query', '').strip()
     item_results = None
     if len(item_query) >= 1:
-        # 1. Fetch all SearchEntry objects that match the name
-        # We only select_related on 'content_type', which is a valid ForeignKey
         search_entries = SearchEntry.objects.filter(
             name__icontains=item_query
         ).select_related('content_type')
-
-        # 2. We will pass these SearchEntry objects directly to the template
         item_results = search_entries
     
     context = {
@@ -661,7 +609,6 @@ def search_index(request):
     This view now ONLY renders the main search page.
     All the search logic is handled by the live search views.
     """
-    # We pass empty context because the page starts with no search results.
     context = {
         'item_query': '',
         'student_query': '',
@@ -669,11 +616,6 @@ def search_index(request):
         'student_results': None,
     }
     return render(request, 'inventory/search_index.html', context)
-
-
-# ==================================
-# PHASE B: CHECKOUT TERMINAL VIEWS
-# ==================================
 
 @login_required
 def live_student_search(request):
@@ -683,7 +625,7 @@ def live_student_search(request):
     """
     query = request.GET.get('query', '').strip()
     student_results = None
-    if len(query) >= 2: # Start searching after 2 characters
+    if len(query) >= 2: 
         student_results = Student.objects.filter(
             Q(name__icontains=query) | Q(admission_number__icontains=query)
         ).order_by('name')
@@ -691,15 +633,11 @@ def live_student_search(request):
     context = {'student_results': student_results}
     return render(request, 'inventory/partials/student_search_results.html', context)
 
-# In inventory/views.py
-
 @login_required
 def live_item_search(request, student_id):
     query = request.GET.get('query', '').strip()
     item_results = None
     if len(query) >= 1:
-        # --- THE UPGRADED SEARCH LOGIC ---
-        # Search in BOTH the item name and the new barcode field
         item_results = Item.objects.filter(
             Q(name__icontains=query) | Q(barcode__startswith=query)
         ).annotate(
@@ -721,13 +659,11 @@ def checkout_find_student(request):
     student_results = None
 
     if request.method == 'POST' and query:
-        # Search in both name and admission number, case-insensitive
         student_results = Student.objects.filter(
             Q(name__icontains=query) | Q(admission_number__icontains=query)
         ).order_by('name')
 
         if student_results.count() == 1:
-            # If there's exactly one match, go straight to the session
             student = student_results.first()
             if 'checkout_items' in request.session:
                 del request.session['checkout_items']
@@ -745,8 +681,7 @@ def checkout_find_student(request):
 def checkout_session(request, student_id):
     student = get_object_or_404(Student, id=student_id)
     checkout_items = request.session.get('checkout_items', {})
-    
-    # Prepare items for the template
+
     items_in_session_details = []
     total_units_in_session = 0
     if checkout_items:
@@ -762,15 +697,12 @@ def checkout_session(request, student_id):
         quantity_to_add = 1
         query = ''
 
-        # --- NEW LOGIC: Determine if the submission is from the scanner or manual form ---
         if 'add_item_from_scan' in request.POST:
             query = request.POST.get('barcode', '').strip()
         elif 'add_item' in request.POST:
             query = request.POST.get('query', '').strip()
 
-        # If a query exists (from either form), proceed with finding the item
         if query:
-            # First, try to treat the query as a barcode
             if query.isdigit() and len(query) >= 12:
                 try:
                     section_code = int(query[0:4])
@@ -780,7 +712,6 @@ def checkout_session(request, student_id):
                 except (Item.DoesNotExist, ValueError):
                     pass
             
-            # If not a barcode, try as a name
             if not item_to_add:
                 results = Item.objects.filter(name__icontains=query)
                 if results.count() == 1:
@@ -788,7 +719,6 @@ def checkout_session(request, student_id):
                 elif results.count() > 1:
                     messages.error(request, f"Multiple items found for '{query}'. Please be more specific or use the barcode.")
             
-            # Process the found item
             if item_to_add:
                 current_in_session = checkout_items.get(str(item_to_add.id), 0)
                 requested_total = current_in_session + quantity_to_add
@@ -801,7 +731,6 @@ def checkout_session(request, student_id):
             else:
                 messages.error(request, f"ERROR: No item found matching '{query}'.")
 
-        # --- LOGIC FOR COMPLETING THE CHECKOUT (unchanged) ---
         elif 'complete_checkout' in request.POST:
             if not checkout_items:
                 messages.error(request, "Cannot complete checkout with no items.")
@@ -867,15 +796,11 @@ def checkout_update_item_quantity(request, student_id, item_id):
         try:
             new_quantity = int(request.POST.get('quantity', 0))
             if new_quantity <= 0:
-                # If quantity is 0 or less, just remove the item
                 if item_id_str in checkout_items:
                     del checkout_items[item_id_str]
                     messages.info(request, "Item removed from the list.")
             else:
                 item = Item.objects.get(id=item_id)
-                
-                # Check if the new quantity is available
-                # The total available is what's on the shelf + what's already in the cart
                 current_in_session = checkout_items.get(item_id_str, 0)
                 max_allowable = item.available_quantity + current_in_session
                 
@@ -892,10 +817,6 @@ def checkout_update_item_quantity(request, student_id, item_id):
 
     return redirect('inventory:checkout_session', student_id=student_id)
 
-
-# ==================================
-# PHASE C: REPORTING & MANAGEMENT
-# ==================================
 @login_required
 def on_loan_dashboard(request):
     """
@@ -918,7 +839,7 @@ def overdue_items_report(request):
     """
     overdue_logs = CheckoutLog.objects.filter(
         return_date__isnull=True,
-        due_date__lt=timezone.now() # The key filter: due date is in the past
+        due_date__lt=timezone.now() 
     ).select_related('item', 'student').order_by('due_date')
 
     context = {
@@ -972,19 +893,15 @@ def process_check_in(request, log_id):
             elif quantity_to_return > quantity_still_on_loan:
                 messages.error(request, f"Cannot return {quantity_to_return}. Only {quantity_still_on_loan} units are on loan.")
             else:
-                # Record this specific return transaction
                 CheckInLog.objects.create(
                     checkout_log=log_entry,
                     quantity_returned=quantity_to_return
                 )
-                
-                # --- THE CRUCIAL FIX IS HERE ---
-                # Refresh the log_entry object from the database to get the latest data
+
                 log_entry.refresh_from_db()
 
                 messages.success(request, f"Successfully returned {quantity_to_return} x '{log_entry.item.name}'.")
 
-                # Now, this check will work correctly with the updated data
                 if log_entry.quantity_returned_so_far == log_entry.quantity:
                     log_entry.return_date = timezone.now()
                     log_entry.save()

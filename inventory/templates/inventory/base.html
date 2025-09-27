@@ -1,3 +1,5 @@
+<!-- sherlock-python/inventory/templates/inventory/base.html -->
+
 {% load static %}
 <!DOCTYPE html>
 <html>
@@ -6,24 +8,19 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="theme-color" content="#208170">
 
-    <!-- 1. Google Fonts Imports -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter+Display:wght@100..900&family=Source+Serif+4:ital,wght@0,200..900;1,200..900&display=swap" rel="stylesheet">
 
-    <!-- 2. Font Awesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 
-    <!-- 3. Local Stylesheet -->
     <link rel="stylesheet" href="{% static 'inventory/css/main.css' %}">
 
-    <!-- 4. HTMX for interactivity -->
     <script src="https://unpkg.com/htmx.org@1.9.10" integrity="sha384-D1Kt99CQMDuVetoL1lrYwg5t+9QdHe7NLX/SoJYkXDFfX37iInKRy5xLSi8nO7UC" crossorigin="anonymous"></script>
  
-    <!-- 5. Hyperscript for client-side scripting -->
+    <!-- Chart.js for data visualization -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-    <!-- 6. HTML5 QR Code Scanner -->
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
 </head>
 <body>

@@ -1,3 +1,5 @@
+<!-- sherlock-python/inventory/templates/inventory/dashboard.html -->
+
 {% extends "inventory/base.html" %}
 {% load inventory_extras %}
 
@@ -6,7 +8,6 @@
     <p>Welcome back! Here's a summary of your lab's current status.</p>
 
     <div class="dashboard-grid">
-        <!-- CLICKABLE METRIC CARDS -->
         <a href="{% url 'inventory:on_loan_dashboard' %}" class="dashboard-card">
             <div class="card-header"><span class="card-label">Items on Loan</span><i class="fa-solid fa-boxes-packing card-icon"></i></div>
             <span class="card-value">{{ total_items_on_loan }}</span>
@@ -25,9 +26,6 @@
         </a>
     </div>
 
-    <!-- QUICK ACTIONS (REMOVED) -->
-
-    <!-- ACTIVITY FEEDS -->
     <div class="dashboard-feeds">
         <div class="feed-column">
             <h3>Recently Checked Out (Today)</h3>
@@ -61,7 +59,6 @@
         </div>
     </div>
 
-    <!-- CHARTS -->
     <div class="dashboard-charts">
         <div class="chart-container">
             <h3>Loan Activity (Last 7 Days)</h3>
@@ -75,7 +72,6 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        // Loan Activity Bar Chart
         const loanCtx = document.getElementById('loanActivityChart').getContext('2d');
         new Chart(loanCtx, {
             type: 'bar',
@@ -92,7 +88,6 @@
             options: { scales: { y: { beginAtZero: true } } }
         });
 
-        // Popular Items Doughnut Chart
         const popularCtx = document.getElementById('popularItemsChart').getContext('2d');
         new Chart(popularCtx, {
             type: 'doughnut',

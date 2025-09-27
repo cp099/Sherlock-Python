@@ -21,8 +21,6 @@ class SpaceForm(forms.ModelForm):
     class Meta:
         model = Space
         fields = ['space_code', 'name', 'description']
-        # The 'section' field is excluded because it will be set automatically
-        # from the URL, not from user input.
         labels = {
             'space_code': 'Space Code',
         }
@@ -33,7 +31,6 @@ class SpaceForm(forms.ModelForm):
 class ItemForm(forms.ModelForm):
     class Meta:
         model = Item
-        # --- 'quantity' has been removed from this list ---
         fields = ['item_code', 'name', 'description', 'buffer_quantity']
         labels = {
             'item_code': 'Item Code',

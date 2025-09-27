@@ -1,5 +1,3 @@
-# This is the final, corrected GitHub Actions workflow file.
-
 name: Build Sherlock Releases
 
 on:
@@ -24,12 +22,9 @@ jobs:
       - name: Build with PyInstaller
         run: pyinstaller sherlock.spec
 
-      # --- THIS IS THE NEW DEBUGGING STEP ---
-      # This step will run and show us the exact contents of the 'dist' folder.
       - name: DEBUG - List contents of dist directory
         run: Get-ChildItem -Path dist -Recurse
 
-      # --- The failing steps are temporarily commented out ---
       - name: Zip the output
         run: Compress-Archive -Path dist/Sherlock.exe -DestinationPath Sherlock-Windows.zip
 
@@ -58,7 +53,6 @@ jobs:
         run: pyinstaller sherlock.spec
 
       - name: Zip the output
-        # --- THE FIX: Use the correct, capitalized name 'Sherlock' ---
         run: zip -r Sherlock-Linux.zip dist/Sherlock
 
       - name: Upload Linux artifact

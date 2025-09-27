@@ -1,3 +1,5 @@
+# sherlock-python/sherlock/settings.py
+
 """
 Django settings for sherlock project.
 
@@ -124,10 +126,8 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
-# This is the single folder where 'collectstatic' will dump all static files for production.
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
-# This tells WhiteNoise to handle serving the files.
 STATICFILES_STORAGE = "whitnoise.storage.CompressedManifestStaticFilesStorage"
 
 # Default primary key field type
@@ -138,5 +138,4 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 LOGIN_REDIRECT_URL = "/dashboard/"
 
-# Redirect to the login page after a user logs out
 LOGOUT_REDIRECT_URL = "/"

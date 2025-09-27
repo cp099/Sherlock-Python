@@ -1,14 +1,14 @@
+<!-- sherlock-python/inventory/templates/inventory/student_list.html -->
+
 {% extends "inventory/base.html" %}
 
 {% block content %}
-    <!-- Header with Title and "Add Student" button -->
     <div style="display: flex; justify-content: space-between; align-items: center;">
         <h1>Student Records</h1>
         <a href="{% url 'inventory:student_create' %}" class="link-button">Add a new student</a>
     </div>
     <p>A list of all students registered in the system.</p>
 
-    <!-- Filter Form with the new class, placed correctly below the header -->
     <form method="get" class="filter-bar">
         <label for="class_filter">Filter by Class:</label>
         <select name="class_filter" id="class_filter" onchange="this.form.submit()">

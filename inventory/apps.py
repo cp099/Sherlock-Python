@@ -1,3 +1,5 @@
+# sherlock-python/inventory/apps.py
+
 from django.apps import AppConfig
 
 

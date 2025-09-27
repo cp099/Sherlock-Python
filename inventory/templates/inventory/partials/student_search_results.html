@@ -3,18 +3,16 @@
 {% if student_results %}
     {% for student in student_results %}
     <tr>
-        <!-- UPDATED column order to match the new header -->
         <td>{{ student.admission_number }}</td>
         <td>{{ student.name }}</td>
         <td>{{ student.student_class }}</td>
-        <td>{{ student.section }}</td> <!-- Added the new data cell -->
+        <td>{{ student.section }}</td> 
         <td>
             <a href="{% url 'inventory:checkout_session' student.id %}" class="link-button" style="padding: 8px 12px; font-size: 14px;">Select</a>
         </td>
     </tr>
     {% endfor %}
 {% elif query %}
-    <!-- Updated colspan to 5 to account for the new column -->
     <tr>
         <td colspan="5">No student found matching your query.</td>
     </tr>

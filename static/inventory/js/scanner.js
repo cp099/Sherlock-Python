@@ -1,31 +1,39 @@
 // sherlock-python/static/inventory/js/scanner.js
 
+/**
+ * scanner.js
+ * 
+ * This script handles all barcode and QR code scanning functionality for Sherlock.
+ * It manages a single, reusable scanner modal and attaches event listeners
+ * to various buttons across the application to trigger different scanning workflows.
+ * 
+ * Dependencies: 
+ *  - html5-qrcode.min.js (must be loaded before this script)
+ *  - A modal element with the ID 'scanner-modal' in the base template.
+ */
+
 document.addEventListener('DOMContentLoaded', function () {
-    // --- Universal Elements for the Scanner Modal ---
     const modal = document.getElementById('scanner-modal');
     const closeButton = document.querySelector('.scanner-close-button');
     const qrReaderElement = document.getElementById('qr-reader');
 
     if (!modal || !closeButton || !qrReaderElement) {
-        // If the modal isn't on the page, don't run any scanner code.
         return;
     }
 
-    // A single, shared scanner object. We initialize it the first time we need it.
     let html5QrcodeScanner;
 
-    // A single function to safely stop the scanner and close the modal
+    // --- Global Scanner Initialization and Controls ---
+
     const stopScannerAndCloseModal = () => {
         if (html5QrcodeScanner && html5QrcodeScanner.getState() === Html5QrcodeScannerState.SCANNING) {
             html5QrcodeScanner.clear().catch(error => {
-                // This can sometimes throw an error if it's already clearing, so we just log it.
                 console.error("Error while clearing the scanner:", error);
             });
         }
         modal.style.display = "none";
     };
 
-    // --- Event Listeners to Close the Modal ---
     closeButton.addEventListener('click', stopScannerAndCloseModal);
     window.addEventListener('click', (event) => {
         if (event.target == modal) {
@@ -33,9 +41,8 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    // ====================================================================
-    //  LOGIC FOR THE CHECKOUT TERMINAL SCANNER
-    // ====================================================================
+    // --- Workflow 1: Checkout Terminal Scanner ---
+
     const checkoutScanButton = document.getElementById('scan-item-button');
     const scannerForm = document.getElementById('scanner-form');
     const scannerBarcodeHiddenInput = document.getElementById('scanner-barcode-input');
@@ -54,13 +61,12 @@ document.addEventListener('DOMContentLoaded', function () {
             if (!html5QrcodeScanner) {
                 html5QrcodeScanner = new Html5QrcodeScanner("qr-reader", { fps: 10, qrbox: { width: 250, height: 250 } });
             }
-            html5QrcodeScanner.render(onCheckoutScanSuccess, (error) => {}); // Start scanning
+            html5QrcodeScanner.render(onCheckoutScanSuccess, (error) => {});
         });
     }
 
-    // ====================================================================
-    //  LOGIC FOR THE UNIVERSAL LOOKUP SCANNER
-    // ====================================================================
+    // --- Workflow 2: Universal Lookup Scanner ---
+
     const universalScanButton = document.getElementById('universal-scan-button');
     const searchPageScanButton = document.getElementById('search-page-scan-button');
     
@@ -68,7 +74,6 @@ document.addEventListener('DOMContentLoaded', function () {
         console.log(`Universal scan successful: ${decodedText}`);
         stopScannerAndCloseModal();
         
-        // Construct the lookup URL and redirect the browser
         const lookupUrl = `/lookup/?code=${encodeURIComponent(decodedText)}`;
         window.location.href = lookupUrl;
     };
@@ -78,7 +83,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!html5QrcodeScanner) {
             html5QrcodeScanner = new Html5QrcodeScanner("qr-reader", { fps: 10, qrbox: { width: 250, height: 250 } });
         }
-        html5QrcodeScanner.render(onUniversalScanSuccess, (error) => {}); // Start scanning
+        html5QrcodeScanner.render(onUniversalScanSuccess, (error) => {});
     };
 
     if (universalScanButton) {

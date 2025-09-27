@@ -1,3 +1,5 @@
+<!-- sherlock-python/inventory/templates/inventory/item_detail.html -->
+
 {% extends "inventory/base.html" %}
 {% load inventory_extras %}
 
@@ -6,7 +8,7 @@
     <h1>{{ item.name }}</h1>
 
     <div class="item-detail-layout">
-        <!-- === LEFT COLUMN (MAIN DETAILS) === -->
+        <!-- === LEFT COLUMN === -->
         <div class="item-detail-main-column">
             <div class="label-card">
                 <h3>Item Barcode</h3>
@@ -45,7 +47,7 @@
             </form>
         </div>
 
-        <!-- === RIGHT COLUMN (LOAN HISTORY AUDIT TRAIL) === -->
+        <!-- === RIGHT COLUMN === -->
         <div class="item-detail-history-column">
             <h2>Loan History Audit Trail</h2>
             <div class="history-filter-form">
@@ -81,10 +83,8 @@
                 </div>
             {% endif %}
 
-            <!-- === NEW INVENTORY HISTORY SECTION (MOVED HERE) === -->
             <h2 style="margin-top: 2em;">Inventory History</h2>
             
-            <!-- New Filter Form for Inventory History -->
             <div class="history-filter-form">
                 <form method="get" style="display:inline-block;"><button type="submit" name="inv_filter" value="week">Last 7 Days</button></form>
                 <form method="get" style="display:inline-block;"><button type="submit" name="inv_filter" value="month">Last 30 Days</button></form>
