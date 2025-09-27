@@ -24,15 +24,20 @@ jobs:
       - name: Build with PyInstaller
         run: pyinstaller sherlock.spec
 
-      - name: Zip the output
-        # --- THE FIX: Use the correct, capitalized name 'Sherlock' ---
-        run: Compress-Archive -Path dist/Sherlock -DestinationPath Sherlock-Windows.zip
+      # --- THIS IS THE NEW DEBUGGING STEP ---
+      # This step will run and show us the exact contents of the 'dist' folder.
+      - name: DEBUG - List contents of dist directory
+        run: Get-ChildItem -Path dist -Recurse
 
-      - name: Upload Windows artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: Sherlock-Windows-Release
-          path: Sherlock-Windows.zip
+      # --- The failing steps are temporarily commented out ---
+      # - name: Zip the output
+      #   run: Compress-Archive -Path dist/Sherlock -DestinationPath Sherlock-Windows.zip
+
+      # - name: Upload Windows artifact
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: Sherlock-Windows-Release
+      #     path: Sherlock-Windows.zip
 
   build-linux:
     runs-on: ubuntu-latest
