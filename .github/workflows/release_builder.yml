@@ -19,20 +19,14 @@ jobs:
           python-version: '3.11'
 
       - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
+        run: pip install -r requirements.txt
 
       - name: Build with PyInstaller
         run: pyinstaller sherlock.spec
 
-      # --- NEW DEBUGGING STEP ---
-      - name: List dist directory contents
-        run: Get-ChildItem -Path dist
-
-      # --- CORRECTED ZIPPING STEP ---
       - name: Zip the output
-        run: Compress-Archive -Path dist/sherlock -DestinationPath Sherlock-Windows.zip
+        # --- THE FIX: Use the correct, capitalized name 'Sherlock' ---
+        run: Compress-Archive -Path dist/Sherlock -DestinationPath Sherlock-Windows.zip
 
       - name: Upload Windows artifact
         uses: actions/upload-artifact@v4
@@ -53,19 +47,13 @@ jobs:
           python-version: '3.11'
 
       - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
+        run: pip install -r requirements.txt
       
       - name: Build with PyInstaller
         run: pyinstaller sherlock.spec
 
-      # --- NEW DEBUGGING STEP ---
-      - name: List dist directory contents
-        run: ls -R dist
-
-      # --- CORRECTED ZIPPING STEP ---
       - name: Zip the output
+        # --- THE FIX: Use the correct, capitalized name 'Sherlock' ---
         run: zip -r Sherlock-Linux.zip dist/Sherlock
 
       - name: Upload Linux artifact
