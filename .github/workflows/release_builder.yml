@@ -33,8 +33,7 @@ jobs:
       # Step 4: Run PyInstaller to build the Windows executable
       - name: Build with PyInstaller
         run: |
-          .\venv\Scripts\activate
-          pyinstaller sherlock.spec
+          .\venv\Scripts\python.exe -m PyInstaller sherlock.spec
 
       # Step 5: Zip the final application folder
       - name: Zip the output
@@ -72,8 +71,7 @@ jobs:
       # Step 4: Run PyInstaller to build the Linux executable
       - name: Build with PyInstaller
         run: |
-          source venv/bin/activate
-          pyinstaller sherlock.spec
+          venv/bin/python -m PyInstaller sherlock.spec
 
       # Step 5: Zip the final application folder
       - name: Zip the output
