@@ -30,14 +30,14 @@ jobs:
         run: Get-ChildItem -Path dist -Recurse
 
       # --- The failing steps are temporarily commented out ---
-      # - name: Zip the output
-      #   run: Compress-Archive -Path dist/Sherlock -DestinationPath Sherlock-Windows.zip
+      - name: Zip the output
+        run: Compress-Archive -Path dist/Sherlock.exe -DestinationPath Sherlock-Windows.zip
 
-      # - name: Upload Windows artifact
-      #   uses: actions/upload-artifact@v4
-      #   with:
-      #     name: Sherlock-Windows-Release
-      #     path: Sherlock-Windows.zip
+      - name: Upload Windows artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Sherlock-Windows-Release
+          path: Sherlock-Windows.zip
 
   build-linux:
     runs-on: ubuntu-latest
