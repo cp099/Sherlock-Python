@@ -1,0 +1,87 @@
+# This is a GitHub Actions workflow file.
+# It defines the automated process for building your application releases.
+
+name: Build Sherlock Releases
+
+# This workflow will be triggered manually from the GitHub Actions tab.
+on:
+  workflow_dispatch:
+
+jobs:
+  build-windows:
+    # --- This job will run on a Windows Server ---
+    runs-on: windows-latest
+
+    steps:
+      # Step 1: Check out your repository's code
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      # Step 2: Set up a Python environment
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      # Step 3: Install all your project dependencies
+      - name: Install dependencies
+        run: |
+          python -m venv venv
+          .\venv\Scripts\activate
+          pip install -r requirements.txt
+
+      # Step 4: Run PyInstaller to build the Windows executable
+      - name: Build with PyInstaller
+        run: |
+          .\venv\Scripts\activate
+          pyinstaller sherlock.spec
+
+      # Step 5: Zip the final application folder
+      - name: Zip the output
+        run: Compress-Archive -Path dist/Sherlock -DestinationPath Sherlock-Windows.zip
+
+      # Step 6: Upload the zip file as a "build artifact"
+      - name: Upload Windows artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Sherlock-Windows-Release
+          path: Sherlock-Windows.zip
+
+  build-linux:
+    # --- This job will run on a Linux (Ubuntu) Server ---
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Check out your repository's code
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      # Step 2: Set up a Python environment
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      # Step 3: Install all your project dependencies
+      - name: Install dependencies
+        run: |
+          python -m venv venv
+          source venv/bin/activate
+          pip install -r requirements.txt
+
+      # Step 4: Run PyInstaller to build the Linux executable
+      - name: Build with PyInstaller
+        run: |
+          source venv/bin/activate
+          pyinstaller sherlock.spec
+
+      # Step 5: Zip the final application folder
+      - name: Zip the output
+        run: zip -r Sherlock-Linux.zip dist/Sherlock
+
+      # Step 6: Upload the zip file as a "build artifact"
+      - name: Upload Linux artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Sherlock-Linux-Release
+          path: Sherlock-Linux.zip
