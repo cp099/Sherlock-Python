@@ -25,7 +25,7 @@ db.sqlite3-journal
 # PyInstaller generated files
 build/
 dist/
-*.spec
+#*.spec
 
 # Django Production / Build Artifacts
 staticfiles/
