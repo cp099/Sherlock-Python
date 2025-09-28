@@ -80,7 +80,7 @@ def universal_lookup(request):
 
     except (Item.DoesNotExist, Section.DoesNotExist, Space.DoesNotExist):
         messages.error(request, f"Could not find any Item, Section, or Space matching the code.")
-        return redirect(request.META.get('HTTP_REFERER', 'inventory:dashboard'))
+        return redirect('homepage')
 
 @login_required
 def dashboard(request):
@@ -377,7 +377,7 @@ def adjust_stock(request, section_code, space_code, item_code, action):
             elif action in ['DAMAGED', 'LOST', 'CORR_SUB']:
                 if quantity > item.quantity:
                     messages.error(request, f"Cannot remove {quantity} units. Only {item.quantity} are in stock.")
-                    return redirect(request.path_info)
+                    return redirect(item.get_absolute_url())
                 item.quantity -= quantity
                 quantity_change = -quantity
             else:
