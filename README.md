@@ -1,8 +1,33 @@
-# Sherlock v2.0
+# Sherlock v2.0: Inventory & Lending Management System
+
+![Python Version](https://img.shields.io/badge/python-3.11-blue.svg)
+![Django Version](https://img.shields.io/badge/django-5.1-green.svg)
+![License](https://img.shields.io/badge/License-Apache_2.0-yellow.svg)
+![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)
 
 **Sherlock is a comprehensive, self-hosted inventory and lending management system designed for school labs, makerspaces, and workshops.**
 
-This project is a complete, ground-up rewrite and significant feature expansion of the original [Sherlock v1.0](https://github.com/Atal-Lab-DPSBS/Sherlock). It migrates the application from Ruby on Rails to a modern, robust, and scalable Python and Django backend, transforming it from a simple inventory list into a powerful lab management platform.
+This project is a complete, ground-up rewrite and significant feature expansion of the original [Sherlock v1.0](https://github.com/Atal-Lab-DPSBS/Sherlock). It transforms the application from a simple inventory list into a powerful, data-driven lab management platform built on a modern and robust Python/Django backend.
+
+---
+
+### ✨ Features at a Glance
+
+| Command Center Dashboard | Checkout Terminal |
+| :---: | :---: |
+| ![Dashboard Screenshot](.github/assets/dashboard.png) | ![Checkout Terminal Screenshot](.github/assets/checkout-terminal.png) |
+| **Item Detail & Audit Trails** | **On Loan Reporting** |
+| ![Item Detail Screenshot](.github/assets/item-detail.png) | ![On Loan Report Screenshot](.github/assets/on-loan-report.png) |
+
+---
+
+## Table of Contents
+- [Mission](#-mission)
+- [Core Features](#-core-features)
+- [Deployment](#-deployment)
+- [For Developers: Running from Source](#-for-developers-running-from-source)
+- [Technology Stack](#️-technology-stack)
+- [License](#️-license)
 
 ## 🌟 Mission
 
@@ -14,48 +39,39 @@ The goal of Sherlock v2.0 is to provide a powerful, easy-to-deploy, and intuitiv
 
 ## ✨ Core Features
 
-Sherlock is built on two major pillars: **Inventory Management** and a **Lending System**.
-
 ### Inventory Management
-*   **Hierarchical Structure:** Organize your inventory logically with **Sections** (e.g., "Electronics Workbench"), **Spaces** (e.g., "Drawer M1"), and **Items** (e.g., "MQ-2 Gas Sensor").
-*   **Stock Control:** Track the quantity of each item, with a full audit trail for every stock change (e.g., "Received New Stock," "Reported Damaged").
-*   **Label Printing:** Generate and print custom barcode and QR code labels for your items, spaces, and sections to seamlessly bridge your physical and digital inventory.
-*   **Powerful Search:** A unified search dashboard to find any item, space, or student record in the system.
+*   **Hierarchical Structure:** Organize your inventory logically with **Sections**, **Spaces**, and **Items**.
+*   **Stock Control:** A full, permanent audit trail for every stock change (e.g., "Received New Stock," "Reported Damaged").
+*   **Label Printing:** Generate and print custom barcode and QR code labels to seamlessly bridge your physical and digital inventory.
+*   **Unified Search:** A powerful, live-search dashboard to find any item or student record in the system.
 
 ### Advanced Lending System
-*   **Student Records:** Maintain a simple, secure database of students who can borrow items.
-*   **Kiosk-Style Checkout Terminal:** A dedicated, fast interface for lab managers to check out items to students. Features a live, as-you-type search for both students (by name or ID) and items (by name or barcode).
-*   **Stock Validation:** The system automatically checks available stock before allowing a checkout, preventing over-lending.
-*   **Partial Returns:** A sophisticated check-in system that allows for partial returns and keeps a complete, auditable log of every transaction.
-*   **Due Date & Overdue Tracking:** Assign a due date to every loan. The system includes a central "On Loan" dashboard and a dedicated "Overdue Items" report.
+*   **Student Records:** Maintain a secure database of students with filtering and search capabilities.
+*   **Kiosk-Style Checkout Terminal:** A dedicated, fast interface for lending items, featuring a live, as-you-type search for both students and items.
+*   **Stock Validation:** The system automatically checks available stock before allowing a checkout.
+*   **Partial Returns & Loan History:** A sophisticated check-in system that allows for partial returns and keeps a complete, auditable log of every transaction for both students and items.
+*   **Due Date & Overdue Tracking:** Assign a due date to every loan and get instant visibility on overdue items through the main dashboard and a dedicated report.
 
 ### Modern Technology
-*   **Camera Scanning:** Use your device's camera to scan item barcodes for rapid checkouts or to use the "Universal Lookup" tool to instantly identify any item, space, or section from anywhere in the app.
+*   **Camera Scanning:** Use your device's camera for rapid checkouts and to instantly look up any item, space, or section with the Universal Scan tool.
 *   **Data Visualizations:** The main dashboard features charts for weekly loan activity and most popular items, providing instant insight into your lab's operations.
 
 ## 🚀 Deployment
 
-Sherlock is designed for incredibly simple deployment in an institutional environment, without requiring any knowledge of Python or Django on the part of the end-user.
-
-The application is packaged as a **standalone executable** using PyInstaller. This bundle contains the entire application, a production-grade web server, and all its dependencies.
+Sherlock is designed for incredibly simple deployment. It is packaged as a **standalone executable** using PyInstaller, containing the entire application, web server, and all dependencies.
 
 ### How to Run Sherlock:
-1.  Go to the [**Releases**](https://github.com/your-username/Sherlock-python/releases) page of this repository.
+1.  Go to the [**Releases**](https://github.com/YOUR-USERNAME/Sherlock-python/releases) page of this repository.
 2.  Download the latest `.zip` file for your operating system (e.g., `Sherlock-v2.0.0-Windows.zip`).
-3.  Unzip the file. This will create a single `Sherlock` folder.
-4.  Inside the folder, double-click the `Sherlock` executable (`Sherlock.exe` on Windows).
+3.  Unzip the file and double-click the `Sherlock` executable.
 
-A terminal window will open, and the server will start. The first time it runs, it will automatically create a new, empty `db.sqlite3` database file inside its folder. You can then access the application in your web browser at `http://127.0.0.1:8000`.
-
-To make it accessible to other computers on the same network, find the local IP address of the machine running Sherlock (e.g., `192.168.1.10`) and access it at `http://192.168.1.10:8000`.
+The server will start, automatically creating a new database on the first run. The application will be available at `http://127.0.0.1:8000` and on your local network.
 
 ## 💻 For Developers: Running from Source
 
-If you want to run the application in a development environment:
-
 1.  **Clone the repository:**
     ```bash
-    git clone https://github.com/your-username/Sherlock-python.git
+    git clone https://github.com/YOUR-USERNAME/Sherlock-python.git
     cd Sherlock-python
     ```
 2.  **Create and activate a virtual environment:**
@@ -64,25 +80,13 @@ If you want to run the application in a development environment:
     source venv/bin/activate  # On macOS/Linux
     .\venv\Scripts\activate   # On Windows
     ```
-3.  **Install the dependencies:**
-    ```bash
-    pip install -r requirements.txt
-    ```
-4.  **Run the initial database migrations:**
-    ```bash
-    python manage.py migrate
-    ```
-5.  **Create a superuser account:**
-    ```bash
-    python manage.py createsuperuser
-    ```
-6.  **Run the development server:**
-    ```bash
-    python manage.py runserver
-    ```
+3.  **Install dependencies:** `pip install -r requirements.txt`
+4.  **Run migrations:** `python manage.py migrate`
+5.  **Create a superuser:** `python manage.py createsuperuser`
+6.  **Run the development server:** `python manage.py runserver`
 
-## 🛠️ Built With
-*   **Backend:** Python 3, Django 5.1
+## 🛠️ Technology Stack
+*   **Backend:** Python 3, Django
 *   **Frontend:** HTML, CSS, HTMX, Chart.js
 *   **Server:** Waitress
 *   **Packaging:** PyInstaller
@@ -90,6 +94,3 @@ If you want to run the application in a development environment:
 ## ⚖️ License
 
 This project is licensed under the Apache License, Version 2.0. See the [LICENSE](LICENSE) file for the full license text and the [NOTICE](NOTICE) file for attribution details.
-
----
-This project is a testament to the power of iterative development and a great example of modernizing an existing application with new technologies and features.
