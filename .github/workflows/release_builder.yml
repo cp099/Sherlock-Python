@@ -3,6 +3,11 @@ name: Build Sherlock Releases
 on:
   workflow_dispatch:
 
+permissions:
+  contents: read
+  actions: write
+  artifacts: write
+
 jobs:
   build-windows:
     runs-on: windows-latest

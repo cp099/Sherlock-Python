@@ -50,7 +50,7 @@ def universal_lookup(request):
     
     if not code:
         messages.error(request, "No code was provided to look up.")
-        return redirect('inventory:dashboard')
+        return redirect('homepage')
 
     try:
         if code.isdigit() and len(code) >= 12:
@@ -76,7 +76,7 @@ def universal_lookup(request):
                     return redirect(section.get_absolute_url())
         
         messages.error(request, f"Could not find any Item, Section, or Space matching the code.")
-        return redirect(request.META.get('HTTP_REFERER', 'inventory:dashboard'))
+        return redirect('homepage')
 
     except (Item.DoesNotExist, Section.DoesNotExist, Space.DoesNotExist):
         messages.error(request, f"Could not find any Item, Section, or Space matching the code.")
