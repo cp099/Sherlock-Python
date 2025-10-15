@@ -4,7 +4,7 @@
 {% load inventory_extras %}
 
 {% block content %}
-    <p><a href="{% url 'inventory:item_list' section_code=item.space.section.section_code space_code=item.space.space_code %}">< See all items in "{{ item.space.name }}"</a></p>
+    <p><a href="{% url 'inventory:inventory_browser' %}">< Back to Inventory Browser</a></p>
     <h1>{{ item.name }}</h1>
 
     <div class="item-detail-layout">

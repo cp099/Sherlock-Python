@@ -1,0 +1,57 @@
+{% extends "inventory/base.html" %}
+{% load inventory_extras %}
+
+{% block content %}
+    <h1>Inventory Browser</h1>
+    
+    <div class="browser-container">
+        <div class="browser-columns">
+            <!-- Column 1: Sections -->
+            <div class="browser-column">
+                <h4>Sections <a href="{% url 'inventory:section_create' %}">+ Add</a></h4>
+                <div id="sections-list" hx-target=".browser-list-item.active" hx-swap="outerHTML">
+                    {% for section in sections %}
+                        <a href="#" class="browser-list-item"
+                           hx-get="{% url 'inventory:get_spaces' section.id %}" hx-target="#spaces-list" hx-swap="innerHTML"
+                           hx-get-preview="{% url 'inventory:get_preview' 'section' section.id %}" hx-target-preview="#preview-pane"
+                           onclick="document.querySelectorAll('.browser-list-item').forEach(el => el.classList.remove('active')); this.classList.add('active');">
+                            <span>{{ section.name }}</span>
+                        </a>
+                    {% endfor %}
+                </div>
+            </div>
+            <!-- Column 2: Spaces (will be populated by HTMX) -->
+            <div class="browser-column" id="spaces-column">
+                <h4>Spaces</h4>
+                <div id="spaces-list"></div>
+            </div>
+            <!-- Column 3: Items (will be populated by HTMX) -->
+            <div class="browser-column" id="items-column">
+                <h4>Items</h4>
+                <div id="items-list"></div>
+            </div>
+        </div>
+
+        <div class="preview-pane" id="preview-pane">
+            <p>Select an item to see its details.</p>
+        </div>
+    </div>
+
+    <script>
+    // This small script handles the multi-request logic for HTMX
+    document.body.addEventListener('htmx:configRequest', function(evt) {
+        if (evt.detail.elt.hasAttribute('hx-get-preview')) {
+            // This is a custom attribute we made up
+            const previewUrl = evt.detail.elt.getAttribute('hx-get-preview');
+            const previewTarget = evt.detail.elt.getAttribute('hx-target-preview');
+            htmx.ajax('GET', previewUrl, previewTarget);
+
+            // Also clear the next column
+            const targetId = evt.detail.elt.getAttribute('hx-target');
+            if (targetId === '#spaces-list') {
+                document.getElementById('items-list').innerHTML = '';
+            }
+        }
+    });
+    </script>
+{% endblock %}

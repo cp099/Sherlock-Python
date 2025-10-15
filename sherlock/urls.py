@@ -17,7 +17,7 @@ from inventory import views as inventory_views
 urlpatterns = [
     path('admin/', admin.site.urls),
 
-    path('', inventory_views.landing_page, name='homepage'),
+    path('', inventory_views.homepage, name='homepage'),
 
     path('accounts/signup/', inventory_views.signup, name='signup'),
     path('accounts/', include('django.contrib.auth.urls')),

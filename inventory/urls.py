@@ -16,22 +16,21 @@ urlpatterns = [
     # ==========================================================================
     # Inventory CRUD (Sections, Spaces, Items)
     # ==========================================================================
+    path('browse/', views.inventory_browser, name='inventory_browser'),
+
     # Sections
-    path('sections/', views.section_list, name='section_list'),
     path('sections/new/', views.section_create, name='section_create'),
     path('sections/<int:section_code>/', views.section_detail, name='section_detail'),
     path('sections/<int:section_code>/edit/', views.section_update, name='section_update'),
     path('sections/<int:section_code>/delete/', views.section_delete, name='section_delete'),
     
     # Spaces
-    path('sections/<int:section_code>/spaces/', views.space_list, name='space_list'),
     path('sections/<int:section_code>/spaces/new/', views.space_create, name='space_create'),
     path('sections/<int:section_code>/spaces/<int:space_code>/', views.space_detail, name='space_detail'),
     path('sections/<int:section_code>/spaces/<int:space_code>/edit/', views.space_update, name='space_update'),
     path('sections/<int:section_code>/spaces/<int:space_code>/delete/', views.space_delete, name='space_delete'),
 
     # Items
-    path('sections/<int:section_code>/spaces/<int:space_code>/items/', views.item_list, name='item_list'),
     path('sections/<int:section_code>/spaces/<int:space_code>/items/new/', views.item_create, name='item_create'),
     path('sections/<int:section_code>/spaces/<int:space_code>/items/<int:item_code>/', views.item_detail, name='item_detail'),
     path('sections/<int:section_code>/spaces/<int:space_code>/items/<int:item_code>/edit/', views.item_update, name='item_update'),
@@ -80,8 +79,12 @@ urlpatterns = [
     # ==========================================================================
     # HTMX Live Search Endpoints
     # ==========================================================================
+    path('htmx/get-spaces/<int:section_id>/', views.get_spaces_for_section, name='get_spaces'),
+    path('htmx/get-items/<int:space_id>/', views.get_items_for_space, name='get_items'),
+    path('htmx/get-preview/<str:model_name>/<int:object_id>/', views.get_preview, name='get_preview'),
     path('live-student-search/', views.live_student_search, name='live_student_search'),
     path('live-item-search/<int:student_id>/', views.live_item_search, name='live_item_search'),
     path('live-unified-student-search/', views.live_unified_student_search, name='live_unified_student_search'),
     path('live-unified-item-search/', views.live_unified_item_search, name='live_unified_item_search'),
+
 ]

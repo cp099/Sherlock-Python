@@ -1,0 +1,22 @@
+<h4>Preview: {{ instance.name }}</h4>
+<p><strong>Code:</strong> 
+    {% if model_name == 'section' %}{{ instance.section_code }}{% endif %}
+    {% if model_name == 'space' %}{{ instance.space_code }}{% endif %}
+    {% if model_name == 'item' %}{{ instance.item_code }}{% endif %}
+</p>
+<p><strong>Description:</strong> {{ instance.description|default:"N/A" }}</p>
+
+{% if model_name == 'item' %}
+    <p><strong>Quantity:</strong> {{ instance.quantity }}</p>
+{% endif %}
+
+<div class="action-area">
+    <a href="{{ instance.get_absolute_url }}">View Full Details</a>
+    
+    {% if model_name == 'section' %}
+        <a href="{% url 'inventory:space_create' instance.section_code %}" class="link-button">Add New Space</a>
+    {% endif %}
+    {% if model_name == 'space' %}
+        <a href="{% url 'inventory:item_create' instance.section.section_code instance.space_code %}" class="link-button">Add New Item</a>
+    {% endif %}
+</div>

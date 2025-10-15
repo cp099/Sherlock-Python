@@ -57,14 +57,13 @@ class Section(TimeStampedModel):
 class Space(TimeStampedModel):
     section = models.ForeignKey(Section, on_delete=models.CASCADE, related_name='spaces')
     space_code = models.PositiveIntegerField(
-        validators=[
-            MinValueValidator(1),
-            MaxValueValidator(9999)
-        ],
+        validators=[MinValueValidator(1), MaxValueValidator(9999)],
         help_text="A 4-digit code for this space, unique within its section (1-9999)."
     )
     name = models.CharField(max_length=50)
     description = models.CharField(max_length=100)
+    
+    original_section_code = models.PositiveIntegerField(editable=False, null=True)
     
     search_entry = GenericRelation('SearchEntry')
 
@@ -72,18 +71,24 @@ class Space(TimeStampedModel):
         unique_together = ('section', 'space_code')
 
     def __str__(self):
-        return f"{self.name} (Space: {self.space_code} in {self.section.name})"
+        return f"{self.name} (in {self.section.name})"
+
+    def save(self, *args, **kwargs):
+        if self.pk is None:
+            self.original_section_code = self.section.section_code
+        super().save(*args, **kwargs)
         
     def get_absolute_url(self):
         return reverse('inventory:space_detail', kwargs={'section_code': self.section.section_code, 'space_code': self.space_code})
 
     def generate_qr_code_svg(self):
-        """Generates the QR code SVG content, replicating the Rails logic."""
+        """Generates the QR code SVG content using the permanent original code."""
         padded_name = (self.name + '*' * 50)[:50]
         padded_desc = (self.description + '*' * 100)[:100]
         
+
         qr_data = (
-            f"SHERLOCK;SECTIONCODE:{str(self.section.section_code).zfill(4)};"
+            f"SHERLOCK;SECTIONCODE:{str(self.original_section_code).zfill(4)};"
             f"SPACECODE:{str(self.space_code).zfill(4)};;"
             f"RESTOREDATA;NAME:{padded_name};DESCRIPTION:{padded_desc};;"
         )
@@ -108,6 +113,8 @@ class Item(TimeStampedModel):
         help_text="Minimum quantity to keep in stock. This amount cannot be checked out."
     )
     barcode = models.CharField(max_length=12, blank=True, editable=False)
+    original_section_code = models.PositiveIntegerField(editable=False, null=True)
+    original_space_code = models.PositiveIntegerField(editable=False, null=True)
     search_entry = GenericRelation('SearchEntry', object_id_field='object_id', content_type_field='content_type')
 
     class Meta:
@@ -117,9 +124,13 @@ class Item(TimeStampedModel):
         return f"{self.name} (Qty: {self.quantity})"
 
     def save(self, *args, **kwargs):
+        if self.pk is None:
+            self.original_section_code = self.space.section.section_code
+            self.original_space_code = self.space.space_code
+        
         self.barcode = (
-            f"{self.space.section.section_code:04d}"
-            f"{self.space.space_code:04d}"
+            f"{self.original_section_code:04d}"
+            f"{self.original_space_code:04d}"
             f"{self.item_code:04d}"
         )
         super().save(*args, **kwargs)
@@ -140,10 +151,9 @@ class Item(TimeStampedModel):
         })
 
     def generate_barcode_svg(self):
-        """Generates the EAN-13 barcode SVG content."""
+        """Generates the EAN-13 barcode SVG content using the permanent barcode field."""
         EAN = barcode.get_barcode_class('ean13')
-        barcode_value = self.barcode
-        ean_barcode = EAN(barcode_value, writer=SVGWriter())
+        ean_barcode = EAN(self.barcode, writer=SVGWriter())
         return ean_barcode.render().decode('utf-8')
     
     @property

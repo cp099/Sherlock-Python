@@ -20,25 +20,37 @@ class SectionForm(forms.ModelForm):
 class SpaceForm(forms.ModelForm):
     class Meta:
         model = Space
-        fields = ['space_code', 'name', 'description']
+        fields = ['section', 'space_code', 'name', 'description']
         labels = {
             'space_code': 'Space Code',
+            'section': 'Parent Section'
         }
         widgets = {
             'description': forms.Textarea(attrs={'rows': 4}),
         }
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance and self.instance.pk:
+            self.fields['space_code'].disabled = True
+
 class ItemForm(forms.ModelForm):
     class Meta:
         model = Item
-        fields = ['item_code', 'name', 'description', 'buffer_quantity']
+        fields = ['space', 'item_code', 'name', 'description', 'quantity', 'buffer_quantity']
         labels = {
             'item_code': 'Item Code',
+            'space': 'Parent Space',
             'buffer_quantity': 'Buffer Stock Quantity',
         }
         widgets = {
             'description': forms.Textarea(attrs={'rows': 4}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance and self.instance.pk:
+            self.fields['item_code'].disabled = True
 
 class StudentForm(forms.ModelForm):
     class Meta:

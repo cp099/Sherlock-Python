@@ -20,13 +20,14 @@ import hashlib
 import base64
 from datetime import timedelta
 
-def landing_page(request):
+def homepage(request):
     """
-    Shows the public landing page to logged-out users.
-    Redirects logged-in users directly to the main sections list.
+    Acts as a router for the root URL.
+    - If the user is logged in, it redirects them to the main dashboard.
+    - If the user is not logged in, it shows the public landing page.
     """
     if request.user.is_authenticated:
-        return redirect('inventory:section_list')
+        return redirect('inventory:dashboard')
     
     return render(request, 'inventory/landing_page.html')
 
@@ -123,10 +124,16 @@ def dashboard(request):
     return render(request, 'inventory/dashboard.html', context)
 
 @login_required
-def section_list(request):
-    sections = Section.objects.all().order_by('section_code')
-    context = {'sections': sections}
-    return render(request, 'inventory/section_list.html', context)
+def inventory_browser(request):
+    """
+    Displays the main inventory browser page with the initial list of all sections.
+    """
+    sections = Section.objects.all().order_by('name')
+    context = {
+        'sections': sections,
+    }
+    return render(request, 'inventory/inventory_browser.html', context)
+
 
 @login_required
 def section_detail(request, section_code):
@@ -191,13 +198,6 @@ def section_add_to_queue(request, section_code):
     return redirect('inventory:section_detail', section_code=section.section_code)
 
 @login_required
-def space_list(request, section_code):
-    section = get_object_or_404(Section, section_code=section_code)
-    spaces = Space.objects.filter(section=section).order_by('space_code')
-    context = {'section': section, 'spaces': spaces}
-    return render(request, 'inventory/space_list.html', context)
-
-@login_required
 def space_detail(request, section_code, space_code):
     section = get_object_or_404(Section, section_code=section_code)
     space = get_object_or_404(Space, section=section, space_code=space_code)
@@ -205,22 +205,21 @@ def space_detail(request, section_code, space_code):
     return render(request, 'inventory/space_detail.html', context)
 
 @login_required
+@login_required
 def space_create(request, section_code):
     section = get_object_or_404(Section, section_code=section_code)
     if request.method == 'POST':
         form = SpaceForm(request.POST)
         if form.is_valid():
-            space = form.save(commit=False)
-            space.section = section
-            space.save()
-            return redirect('inventory:space_detail', section_code=section.section_code, space_code=space.space_code)
+            space = form.save()
+            return redirect('inventory:space_detail', section_code=space.section.section_code, space_code=space.space_code)
     else:
         last_space = Space.objects.filter(section=section).aggregate(max_code=Max('space_code'))
         next_code = (last_space['max_code'] or 0) + 1
-        form = SpaceForm(initial={'space_code': next_code})
+        form = SpaceForm(initial={'section': section, 'space_code': next_code})
     
     context = {'form': form, 'section': section}
-    return render(request, 'inventory/space_form.html', context) 
+    return render(request, 'inventory/space_form.html', context)
 
 @login_required
 def space_update(request, section_code, space_code):
@@ -268,19 +267,6 @@ def space_add_to_queue(request, section_code, space_code):
 
 
 @login_required
-def item_list(request, section_code, space_code):
-    section = get_object_or_404(Section, section_code=section_code)
-    space = get_object_or_404(Space, section=section, space_code=space_code)
-    items = Item.objects.filter(space=space).order_by('item_code')
-    
-    context = {
-        'section': section,
-        'space': space,
-        'items': items,
-    }
-    return render(request, 'inventory/item_list.html', context)
-
-@login_required
 def item_detail(request, section_code, space_code, item_code):
     section = get_object_or_404(Section, section_code=section_code)
     space = get_object_or_404(Space, section=section, space_code=space_code)
@@ -317,19 +303,23 @@ def item_detail(request, section_code, space_code, item_code):
 def item_create(request, section_code, space_code):
     section = get_object_or_404(Section, section_code=section_code)
     space = get_object_or_404(Space, section=section, space_code=space_code)
+    
     if request.method == 'POST':
         form = ItemForm(request.POST)
         if form.is_valid():
-            item = form.save(commit=False)
-            item.space = space
-            item.save()
-            return redirect('inventory:item_detail', section_code=section.section_code, space_code=space.space_code, item_code=item.item_code)
+            item = form.save()
+            return redirect(item.get_absolute_url())
     else:
         last_item = Item.objects.filter(space=space).aggregate(max_code=Max('item_code'))
         next_code = (last_item['max_code'] or 0) + 1
-        form = ItemForm(initial={'item_code': next_code})
+        
+        form = ItemForm(initial={'space': space, 'item_code': next_code})
     
-    context = {'form': form, 'section': section, 'space': space}
+    context = {
+        'form': form,
+        'section': section,
+        'space': space,
+    }
     return render(request, 'inventory/item_form.html', context)
 
 @login_required
@@ -914,3 +904,34 @@ def process_check_in(request, log_id):
             messages.error(request, "Invalid quantity entered.")
             
     return redirect('inventory:check_in_page', log_id=log_id)
+
+@login_required
+def get_spaces_for_section(request, section_id):
+    section = get_object_or_404(Section, id=section_id)
+    spaces = Space.objects.filter(section=section).order_by('name')
+    context = {'spaces': spaces}
+    return render(request, 'inventory/partials/_browser_spaces_column.html', context)
+
+@login_required
+def get_items_for_space(request, space_id):
+    space = get_object_or_404(Space, id=space_id)
+    items = Item.objects.filter(space=space).order_by('name')
+    context = {'items': items}
+    return render(request, 'inventory/partials/_browser_items_column.html', context)
+
+@login_required
+def get_preview(request, model_name, object_id):
+    if model_name == 'section':
+        instance = get_object_or_404(Section, id=object_id)
+    elif model_name == 'space':
+        instance = get_object_or_404(Space, id=object_id)
+    elif model_name == 'item':
+        instance = get_object_or_404(Item, id=object_id)
+    else:
+        return HttpResponse("Invalid model type.", status=400)
+        
+    context = {
+        'instance': instance,
+        'model_name': model_name,
+    }
+    return render(request, 'inventory/partials/_browser_preview_pane.html', context)

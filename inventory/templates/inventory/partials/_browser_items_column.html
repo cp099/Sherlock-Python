@@ -1,0 +1,7 @@
+{% for item in items %}
+    <a href="#" class="browser-list-item"
+       hx-get="{% url 'inventory:get_preview' 'item' item.id %}" hx-target="#preview-pane"
+       onclick="document.querySelectorAll('.browser-list-item').forEach(el => el.classList.remove('active')); this.classList.add('active');">
+        <span>{{ item.name }}</span>
+    </a>
+{% endfor %}

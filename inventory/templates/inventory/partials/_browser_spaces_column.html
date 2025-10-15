@@ -1,0 +1,8 @@
+{% for space in spaces %}
+    <a href="#" class="browser-list-item"
+       hx-get="{% url 'inventory:get_items' space.id %}" hx-target="#items-list"
+       hx-get-preview="{% url 'inventory:get_preview' 'space' space.id %}" hx-target-preview="#preview-pane"
+       onclick="document.querySelectorAll('.browser-list-item').forEach(el => el.classList.remove('active')); this.classList.add('active');">
+        <span>{{ space.name }}</span>
+    </a>
+{% endfor %}
