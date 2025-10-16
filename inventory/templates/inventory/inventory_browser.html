@@ -38,15 +38,12 @@
     </div>
 
     <script>
-    // This small script handles the multi-request logic for HTMX
     document.body.addEventListener('htmx:configRequest', function(evt) {
         if (evt.detail.elt.hasAttribute('hx-get-preview')) {
-            // This is a custom attribute we made up
             const previewUrl = evt.detail.elt.getAttribute('hx-get-preview');
             const previewTarget = evt.detail.elt.getAttribute('hx-target-preview');
             htmx.ajax('GET', previewUrl, previewTarget);
 
-            // Also clear the next column
             const targetId = evt.detail.elt.getAttribute('hx-target');
             if (targetId === '#spaces-list') {
                 document.getElementById('items-list').innerHTML = '';

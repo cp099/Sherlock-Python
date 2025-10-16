@@ -223,6 +223,7 @@ class CheckoutLog(models.Model):
     checkout_date = models.DateTimeField(auto_now_add=True)
     return_date = models.DateTimeField(null=True, blank=True, help_text="This is set when the item is returned.")
     due_date = models.DateTimeField(help_text="The date and time the item is expected to be returned.")
+    notes = models.TextField(blank=True, help_text="Reason or notes for this checkout.")
     
     quantity = models.PositiveIntegerField(default=1, help_text="The number of items checked out in this transaction.")
 

@@ -31,10 +31,33 @@
                 </tbody>
             </table>
 
-            <div class="action-area">
-                <a href="{% url 'inventory:item_update' section_code=item.space.section.section_code space_code=item.space.space_code item_code=item.item_code %}">Edit Details</a>
-                <a href="{% url 'inventory:adjust_stock' section_code=item.space.section.section_code space_code=item.space.space_code item_code=item.item_code action='RECEIVED' %}" class="link-button">Receive Stock</a>
-                <a href="{% url 'inventory:adjust_stock' section_code=item.space.section.section_code space_code=item.space.space_code item_code=item.item_code action='DAMAGED' %}" class="link-button destructive-background">Report Damaged</a>
+            <div class="action-grid">
+                <!-- First Row -->
+                <div class="action-row">
+                    <div>
+                        <a href="{% url 'inventory:item_update' section_code=item.space.section.section_code space_code=item.space.space_code item_code=item.item_code %}">Edit Details</a>
+                    </div>
+                    <div>
+                        <a href="{% url 'inventory:adjust_stock' section_code=item.space.section.section_code space_code=item.space.space_code item_code=item.item_code action='RECEIVED' %}" class="link-button">Receive Stock</a>
+                    </div>
+                </div>
+
+                <!-- Second Row -->
+                <div class="action-row">
+                    <div>
+                        <a href="{% url 'inventory:adjust_stock' section_code=item.space.section.section_code space_code=item.space.space_code item_code=item.item_code action='DAMAGED' %}" class="link-button destructive-background">Report Damaged</a>
+                    </div>
+                    <div style="display: flex; gap: 15px;">
+                        <form action="{% url 'inventory:item_add_small_to_queue' section_code=item.space.section.section_code space_code=item.space.space_code item_code=item.item_code %}" method="post" style="margin: 0;">
+                            {% csrf_token %}
+                            <button type="submit">Add small label</button>
+                        </form>
+                        <form action="{% url 'inventory:item_add_large_to_queue' section_code=item.space.section.section_code space_code=item.space.space_code item_code=item.item_code %}" method="post" style="margin: 0;">
+                            {% csrf_token %}
+                            <button type="submit">Add large label</button>
+                        </form>
+                    </div>
+                </div>
             </div>
 
             <hr>

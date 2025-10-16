@@ -84,21 +84,42 @@
         <form method="post">
             {% csrf_token %}
             <div>
+                <label for="notes">Reason for Checkout:</label><br>
+                <textarea name="notes" id="notes" class="notes-textarea" required></textarea>
+            </div>
+            <div style="margin-top: 1em;">
                 <input type="radio" id="due_days" name="due_date_option" value="days" checked>
                 <label for="due_days">Return in</label>
                 <input type="number" name="days_to_return" value="7" min="1" style="width: 60px;">
-                <label for="due_days">days</label>
+                <label for="due_days">days (defaults to 2:00 PM)</label>
             </div>
             <div style="margin-top: 10px;">
                 <input type="radio" id="due_date" name="due_date_option" value="date">
-                <label for="due_date">Return on specific date:</label>
-                <input type="date" name="return_date">
+                <label for="due_date">Return on specific date and time:</label>
+                <input type="datetime-local" id="return_date_input" name="return_date">
             </div>
 
             <button type="submit" name="complete_checkout" style="font-size: 20px; padding: 15px 30px; margin-top: 20px;">
                 Complete Checkout ({{ total_units_in_session }} Units)
             </button>
         </form>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const dateTimeInput = document.getElementById('return_date_input');
+                if (dateTimeInput) {
+                    dateTimeInput.addEventListener('change', function() {
+                        const selectedDateTime = new Date(this.value);
+                        const now = new Date();
+
+                        if (selectedDateTime < now) {
+                            alert("Invalid Time: The return date and time cannot be in the past.");
+                            this.value = ''; 
+                        }
+                    });
+                }
+            });
+        </script>
     {% else %}
         <p>No items added yet. Scan an item or search to begin.</p>
     {% endif %}

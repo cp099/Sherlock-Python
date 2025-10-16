@@ -174,7 +174,7 @@ def section_delete(request, section_code):
     section = get_object_or_404(Section, section_code=section_code)
     if request.method == 'POST':
         section.delete()
-        return redirect('inventory:section_list')
+        return redirect('inventory:inventory_browser')
     return redirect('inventory:section_detail', section_code=section.section_code)
 
 @login_required
@@ -241,7 +241,7 @@ def space_delete(request, section_code, space_code):
     space = get_object_or_404(Space, section=section, space_code=space_code)
     if request.method == 'POST':
         space.delete()
-        return redirect('inventory:space_list', section_code=section.section_code)
+        return redirect('inventory:inventory_browser')
     return redirect('inventory:space_detail', section_code=section.section_code, space_code=space.space_code)
 
 @login_required
@@ -344,7 +344,7 @@ def item_delete(request, section_code, space_code, item_code):
     item = get_object_or_404(Item, space=space, item_code=item_code)
     if request.method == 'POST':
         item.delete()
-        return redirect('inventory:item_list', section_code=section.section_code, space_code=space.space_code)
+        return redirect('inventory:inventory_browser')
     return redirect('inventory:item_detail', section_code=section.section_code, space_code=space.space_code, item_code=item.item_code)
 
 @login_required
@@ -725,23 +725,30 @@ def checkout_session(request, student_id):
             if not checkout_items:
                 messages.error(request, "Cannot complete checkout with no items.")
             else:
+                notes = request.POST.get('notes', '')
                 due_date_option = request.POST.get('due_date_option')
                 final_due_date = None
+
                 if due_date_option == 'days':
                     try:
                         days = int(request.POST.get('days_to_return', 0))
                         if days > 0:
                             future_date = timezone.now().date() + timedelta(days=days)
-                            final_due_date = timezone.make_aware(datetime.combine(future_date, datetime.min.time())).replace(hour=9)
+                            final_due_date = timezone.make_aware(datetime.combine(future_date, datetime.min.time())).replace(hour=14)
                     except (ValueError, TypeError):
                          messages.error(request, "Invalid number of days.")
+                
                 elif due_date_option == 'date':
                     try:
-                        date_str = request.POST.get('return_date')
-                        if date_str:
-                            final_due_date = timezone.make_aware(datetime.strptime(date_str, '%Y-%m-%d'))
+                        due_date_str = request.POST.get('return_date')
+                        if due_date_str:
+                            final_due_date = timezone.make_aware(datetime.strptime(due_date_str, '%Y-%m-%dT%H:%M'))
                     except (ValueError, TypeError):
-                        messages.error(request, "Invalid date format.")
+                        messages.error(request, "Invalid date/time format.")
+                
+                if final_due_date and final_due_date < timezone.now():
+                    messages.error(request, "The return date and time cannot be in the past.")
+                    final_due_date = None 
                 
                 if final_due_date:
                     for item_id, quantity in checkout_items.items():
@@ -750,12 +757,13 @@ def checkout_session(request, student_id):
                             item=item, 
                             student=student, 
                             due_date=final_due_date, 
-                            quantity=quantity
+                            quantity=quantity,
+                            notes=notes 
                         )
                     del request.session['checkout_items']
                     messages.success(request, f"Checkout complete! {total_units_in_session} items have been loaned to {student.name}.")
                     return redirect('inventory:student_detail', student_id=student.id)
-                else:
+                elif not messages.get_messages(request):
                     messages.error(request, "Please specify a valid return date or number of days.")
 
         return redirect('inventory:checkout_session', student_id=student.id)

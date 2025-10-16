@@ -11,7 +11,15 @@
         <hr>
         <form method="post">
             {% csrf_token %}
-            {{ form.as_p }}
+            <p>
+                <label for="{{ form.quantity.id_for_label }}">{{ form.quantity.label }}:</label>
+                {{ form.quantity }}
+            </p>
+            <p>
+                <label for="{{ form.notes.id_for_label }}">{{ form.notes.label }}:</label>
+                <textarea name="notes" id="{{ form.notes.id_for_label }}" class="notes-textarea" required></textarea>
+                <small>{{ form.notes.help_text }}</small>
+            </p>
             <button type="submit">Confirm Adjustment</button>
         </form>
     </div>

@@ -334,13 +334,7 @@ main {
   background-color: #f9f9f9;
 }
 
-.action-area {
-  display: flex;
-  align-items: center;
-  gap: 20px; 
-  margin-top: 1.5em;
-  margin-bottom: 2em;
-}
+
 .action-area a {
   font-weight: 600;
   font-size: 16px;
@@ -764,4 +758,35 @@ main {
   border: 1px solid #e0e0e0;
   border-radius: 8px;
   background-color: #fdfdfd;
+}
+
+.notes-textarea {
+  width: 100%;
+  max-width: 500px; 
+  height: 80px;    
+  padding: 8px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  font-family: inherit; 
+  font-size: 14px;
+  resize: vertical; 
+}
+
+.action-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.action-row {
+  display: flex;
+  flex-direction: column; 
+  align-items: flex-start;
+  gap: 15px;
+}
+
+.link-button, 
+.action-row button {
+  width: 220px;
+  text-align: center;
 }

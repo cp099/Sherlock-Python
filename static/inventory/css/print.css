@@ -1,0 +1,31 @@
+/* sherlock-python/static/inventory/css/print.css */
+
+@media print {
+    nav, main > h1, main > p:first-of-type {
+        display: none !important;
+    }
+
+    main {
+        margin-left: 0 !important;
+        padding: 0 !important;
+    }
+
+    .print-labels-container {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: flex-start;
+        align-content: flex-start;
+        gap: 0;
+    }
+
+    .printdiv {
+        page-break-inside: avoid !important;
+        border: 1px dashed #ccc !important;
+        margin: 5mm;
+        padding: 0;
+    }
+    
+    .printdiv p, .print-page-footer {
+        display: none !important;
+    }
+}

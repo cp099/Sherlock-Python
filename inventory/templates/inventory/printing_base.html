@@ -1,22 +1,17 @@
 <!-- sherlock-python/inventory/templates/inventory/printing_base.html -->
 
+{% load static %}
 <!DOCTYPE html>
 <html>
 <head>
     <title>Sherlock Printing</title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <style>
-        body { margin: 0; padding: 1cm; }
-        .printdiv { 
-            page-break-inside: avoid;
-            page-break-after: always;
-            border: 1px dashed #ccc;
-            padding: 10px;
-            margin-bottom: 1cm;
-        }
-    </style>
+    
+    <link rel="stylesheet" href="{% static 'inventory/css/main.css' %}">
+    
+    <link rel="stylesheet" href="{% static 'inventory/css/print.css' %}" media="print">
 </head>
-<body>
+<body class="label-sheet">
     {% block content %}{% endblock %}
 </body>
 </html>

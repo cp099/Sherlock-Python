@@ -26,7 +26,6 @@
 
         <div class="action-area">
             <a href="{% url 'inventory:section_update' section.section_code %}">Edit</a>
-            <a href="{% url 'inventory:space_list' section.section_code %}">View Spaces ></a>
             <form action="{% url 'inventory:section_add_to_queue' section.section_code %}" method="post">
                 {% csrf_token %}
                 <button type="submit">Add to print queue</button>
