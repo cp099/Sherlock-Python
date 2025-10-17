@@ -84,6 +84,14 @@ def universal_lookup(request):
         return redirect('homepage')
 
 @login_required
+def sitemap(request):
+    """
+    Renders the sitemap page, which provides a complete overview and
+    quick links to all major parts of the application.
+    """
+    return render(request, 'inventory/sitemap.html')
+
+@login_required
 def dashboard(request):
     now = timezone.now()
     today = now.date()

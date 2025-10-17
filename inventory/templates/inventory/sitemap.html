@@ -1,0 +1,62 @@
+{% extends "inventory/base.html" %}
+
+{% block content %}
+    <h1>Sitemap</h1>
+    <p>A complete overview of all pages and features available in Sherlock. Use this page to quickly navigate to any part of the application.</p>
+
+    <div class="sitemap-container">
+        <!-- Main Application Section -->
+        <div class="sitemap-section">
+            <h3>Main Application</h3>
+            <ul>
+                <li><a href="{% url 'inventory:dashboard' %}"><strong>Dashboard</strong></a> - Your main command center.</li>
+            </ul>
+        </div>
+
+        <!-- Inventory Section -->
+        <div class="sitemap-section">
+            <h3>Inventory Management</h3>
+            <ul>
+                <li><a href="{% url 'inventory:inventory_browser' %}"><strong>Inventory Browser</strong></a> - The main tool for navigating Sections, Spaces, and Items.</li>
+                <li><a href="{% url 'inventory:low_stock_report' %}"><strong>Low Stock Report</strong></a> - View all items with a quantity of 5 or less.</li>
+            </ul>
+        </div>
+
+        <!-- Management Section -->
+        <div class="sitemap-section">
+            <h3>Lending & Student Management</h3>
+            <ul>
+                <li><a href="{% url 'inventory:student_list' %}"><strong>Student Records</strong></a> - View, add, and manage all student records.</li>
+                <li><a href="{% url 'inventory:on_loan_dashboard' %}"><strong>On Loan Dashboard</strong></a> - See all items currently checked out.</li>
+                <li><a href="{% url 'inventory:overdue_report' %}"><strong>Overdue Items Report</strong></a> - View a filtered list of all overdue items.</li>
+                <li><a href="{% url 'inventory:checkout_find_student' %}"><strong>Checkout Terminal</strong></a> - Start a new checkout session.</li>
+            </ul>
+        </div>
+
+        <!-- Tools Section -->
+        <div class="sitemap-section">
+            <h3>Tools</h3>
+            <ul>
+                <li><a href="{% url 'inventory:search' %}"><strong>Unified Search</strong></a> - Search for both items and students.</li>
+                <li><a href="{% url 'inventory:print_queue' %}"><strong>Print Queue</strong></a> - Manage and print your saved labels.</li>
+                <li><button type="button" id="sitemap-scan-button" style="all: unset; color: #01a995; font-weight: 700; cursor: pointer; text-decoration: underline;"><strong>Universal Scan</strong></button> - Scan any code to look up its details.</li>
+            </ul>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const scanButton = document.getElementById('sitemap-scan-button');
+        if (scanButton) {
+            const globalScanButton = document.getElementById('universal-scan-button');
+            if (globalScanButton) {
+                scanButton.addEventListener('click', function() {
+                    globalScanButton.click();
+                });
+            }
+        }
+    });
+</script>
+{% endblock %}

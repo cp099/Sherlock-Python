@@ -10,6 +10,7 @@ urlpatterns = [
     # Main Navigation & Dashboards
     # ==========================================================================
     path('dashboard/', views.dashboard, name='dashboard'),
+    path('sitemap/', views.sitemap, name='sitemap'),
     path('search/', views.search_index, name='search'),
     path('lookup/', views.universal_lookup, name='lookup'),
 
