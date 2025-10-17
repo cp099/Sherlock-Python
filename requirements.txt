@@ -1,6 +1,6 @@
 altgraph==0.17.4
 asgiref==3.9.1
-Django==5.2.6
+Django==5.2.7
 macholib==1.16.3
 packaging==25.0
 pillow==11.3.0
