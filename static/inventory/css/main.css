@@ -784,9 +784,3 @@ main {
   align-items: flex-start;
   gap: 15px;
 }
-
-.link-button, 
-.action-row button {
-  width: 220px;
-  text-align: center;
-}
