@@ -4,10 +4,11 @@
 
 {% block content %}
     {% if section %}
-        <p><a href="{% url 'inventory:section_detail' section.section_code %}">< Go back to "{{ section.name }}"</a></p>
+        {# This edit link points to a non-existent URL, let's fix it too #}
+        <p><a href="{% url 'inventory:inventory_browser' %}">< Back to Inventory Browser</a></p>
         <h1>Edit <i>"{{ section.name }}"</i></h1>
     {% else %}
-        <p><a href="{% url 'inventory:section_list' %}">< See all sections</a></p>
+        <p><a href="{% url 'inventory:inventory_browser' %}">< Back to Inventory Browser</a></p>
         <h1>Create a New Section</h1>
     {% endif %}
 
