@@ -1,0 +1,71 @@
+{% extends "inventory/base.html" %}
+{% load static %}
+
+{% block content %}
+<style>
+    .error-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 75vh; 
+        text-align: center;
+    }
+    .error-wrapper {
+        position: relative; 
+        max-width: 600px;
+        width: 100%;
+    }
+    .background-404 {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 20rem; 
+        font-weight: 800;
+        color: #e2e3e5; 
+        z-index: 1;
+        line-height: 1;
+        user-select: none;
+    }
+    .content {
+        position: relative;
+        z-index: 2;
+        padding: 2rem;
+    }
+    .logo {
+        width: 100%;
+        max-width: 300px; 
+        height: auto;
+        margin-bottom: -1.5rem; 
+    }
+    .error-title {
+        font-weight: 700;
+        font-size: 1.75rem;
+        margin-top: 2rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid #585858;
+    }
+</style>
+
+<div class="error-container">
+    <div class="error-wrapper">
+        <div class="background-404">404</div>
+
+        <div class="content">
+            <img src="{% static 'inventory/images/logo.svg' %}" alt="Sherlock Logo" class="logo">
+            <h2 class="error-title">Page Not Found</h2>
+            
+            <p class="lead text-muted mt-3">
+                It seems the page you're looking for has vanished into thin air.
+            </p>
+            
+            <p>Let's get you back to a familiar place.</p>
+            
+            <a href="{% url 'inventory:dashboard' %}" class="btn btn-link btn-lg mt-2">
+                <i class="fas fa-tachometer-alt"></i> Go to Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

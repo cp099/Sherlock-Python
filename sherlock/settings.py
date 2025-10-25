@@ -12,6 +12,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
+import socket
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -25,9 +26,17 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-gspzj&@$^rf!^erfwwj_2zm@thy@q-4sag4xip^8gdm5b-&e6s'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
+if not DEBUG:
+    try:
+        hostname = socket.gethostname()
+        ALLOWED_HOSTS.append(hostname)
+        ip_address = socket.gethostbyname(hostname)
+        ALLOWED_HOSTS.append(ip_address)
+    except socket.gaierror:
+        print("Warning: Could not determine hostname or IP for ALLOWED_HOSTS. Network access may be limited.")
 
 
 # Application definition
@@ -44,7 +53,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-     'whitenoise.middleware.WhiteNoiseMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',

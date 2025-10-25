@@ -1020,3 +1020,9 @@ def create_user(request):
         form = UserCreationForm()
     context = {'form': form}
     return render(request, 'inventory/create_user.html', context)
+
+def custom_page_not_found_view(request, exception):
+    """
+    Custom view to render the 404.html template.
+    """
+    return render(request, "404.html", status=404)
