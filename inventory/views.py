@@ -12,9 +12,12 @@ from django.contrib import messages
 from django.utils import timezone
 from django.db.models import Q, Sum, Max, F, Count
 from django.db.models.functions import TruncDay
+from django.contrib.auth.models import User
 
-from .models import Section, Space, Item, PrintQueue, PrintQueueItem, SearchEntry, Student, CheckoutLog, CheckInLog, ItemLog
-from .forms import SectionForm, SpaceForm, ItemForm, StudentForm, StockAdjustmentForm
+
+from .models import Section, Space, Item, PrintQueue, PrintQueueItem, SearchEntry, Student, CheckoutLog, CheckInLog, ItemLog, UserProfile
+from .forms import SectionForm, SpaceForm, ItemForm, StudentForm, StockAdjustmentForm, UserUpdateForm, UserRoleForm
+from .decorators import admin_required
 
 import hashlib
 import base64
@@ -178,6 +181,7 @@ def section_update(request, section_code):
     return render(request, 'inventory/section_form.html', context)
 
 @login_required
+@admin_required
 def section_delete(request, section_code):
     section = get_object_or_404(Section, section_code=section_code)
     if request.method == 'POST':
@@ -244,6 +248,7 @@ def space_update(request, section_code, space_code):
     return render(request, 'inventory/space_form.html', context)
 
 @login_required
+@admin_required
 def space_delete(request, section_code, space_code):
     section = get_object_or_404(Section, section_code=section_code)
     space = get_object_or_404(Space, section=section, space_code=space_code)
@@ -346,6 +351,7 @@ def item_update(request, section_code, space_code, item_code):
     return render(request, 'inventory/item_form.html', context)
 
 @login_required
+@admin_required
 def item_delete(request, section_code, space_code, item_code):
     section = get_object_or_404(Section, section_code=section_code)
     space = get_object_or_404(Space, section=section, space_code=space_code)
@@ -509,6 +515,7 @@ def student_update(request, student_id):
     return render(request, 'inventory/student_form.html', context)
 
 @login_required
+@admin_required
 def student_delete(request, student_id):
     student = get_object_or_404(Student, id=student_id)
     if request.method == 'POST':
@@ -951,3 +958,65 @@ def get_preview(request, model_name, object_id):
         'model_name': model_name,
     }
     return render(request, 'inventory/partials/_browser_preview_pane.html', context)
+
+@login_required
+def my_profile(request):
+    if request.method == 'POST':
+        form = UserUpdateForm(request.POST, instance=request.user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Your profile has been updated successfully.")
+            return redirect('inventory:my_profile')
+    else:
+        form = UserUpdateForm(instance=request.user)
+    
+    context = {'form': form}
+    return render(request, 'inventory/my_profile.html', context)
+
+
+@login_required
+@admin_required
+def team_management(request):
+    if request.user.profile.role != 'ADMIN':
+        messages.error(request, "You do not have permission to access this page.")
+        return redirect('inventory:dashboard')
+    
+    users = UserProfile.objects.exclude(user=request.user).order_by('user__username')
+    form = UserRoleForm()
+    
+    context = {'users': users, 'form': form}
+    return render(request, 'inventory/team_management.html', context)
+
+@login_required
+@admin_required
+def update_user_role(request, user_id):
+    """Handles the form submission for changing a user's role."""
+    if request.user.profile.role != 'ADMIN':
+        messages.error(request, "You do not have permission to perform this action.")
+        return redirect('inventory:team_management')
+
+    if request.method == 'POST':
+        user_to_update = get_object_or_404(UserProfile, id=user_id)
+        new_role = request.POST.get('role')
+        if new_role in UserProfile.Role.values:
+            user_to_update.role = new_role
+            user_to_update.save()
+            messages.success(request, f"Successfully updated role for {user_to_update.user.username}.")
+        else:
+            messages.error(request, "Invalid role selected.")
+            
+    return redirect('inventory:team_management')
+
+@login_required
+@admin_required
+def create_user(request):
+    if request.method == 'POST':
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            messages.success(request, f"Successfully created user '{user.username}'. You can now assign them a role.")
+            return redirect('inventory:team_management')
+    else:
+        form = UserCreationForm()
+    context = {'form': form}
+    return render(request, 'inventory/create_user.html', context)

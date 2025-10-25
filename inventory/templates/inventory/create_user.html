@@ -1,0 +1,12 @@
+{% extends "inventory/base.html" %}
+{% block content %}
+    <p><a href="{% url 'inventory:team_management' %}">< Back to Team Management</a></p>
+    <h1>Create a New User</h1>
+    <div class="detail-container">
+        <form method="post">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit">Create User</button>
+        </form>
+    </div>
+{% endblock %}

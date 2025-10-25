@@ -1,0 +1,33 @@
+{% extends "inventory/base.html" %}
+{% block content %}
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h1>Team Management</h1>
+        <a href="{% url 'inventory:create_user' %}" class="link-button">Add New User</a>
+    </div>
+    <p>As an Admin, you can manage the roles of other users in the system.</p>
+
+    <table class="open-table">
+        <thead>
+            <tr><th>Username</th><th>Email</th><th>Current Role</th><th>Change Role</th></tr>
+        </thead>
+        <tbody>
+            {% for profile in users %}
+            <tr>
+                <td>{{ profile.user.username }}</td>
+                <td>{{ profile.user.email }}</td>
+                <td>{{ profile.get_role_display }}</td>
+                <td>
+                    <form action="{% url 'inventory:update_user_role' profile.id %}" method="post">
+                        {% csrf_token %}
+                        <select name="role" onchange="this.form.submit()">
+                            {% for value, name in form.fields.role.choices %}
+                                <option value="{{ value }}" {% if profile.role == value %}selected{% endif %}>{{ name }}</option>
+                            {% endfor %}
+                        </select>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

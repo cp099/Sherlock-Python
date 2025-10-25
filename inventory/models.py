@@ -8,6 +8,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.urls import reverse
 from django.utils import timezone
 from django.db.models import Sum
+from django.db.models.signals import post_save
 
 import barcode
 from barcode.writer import SVGWriter
@@ -215,6 +216,24 @@ class Student(TimeStampedModel):
         self.section = self.section.upper()
         
         super().save(*args, **kwargs)
+
+class UserProfile(models.Model):
+    """Extends the default Django User model to include a role."""
+    class Role(models.TextChoices):
+        ADMIN = 'ADMIN', 'Admin'
+        MEMBER = 'MEMBER', 'Member'
+
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='profile')
+    role = models.CharField(max_length=10, choices=Role.choices, default=Role.MEMBER)
+
+    def __str__(self):
+        return f"{self.user.username} - {self.get_role_display()}"
+
+def create_user_profile(sender, instance, created, **kwargs):
+    if created:
+        UserProfile.objects.create(user=instance)
+
+post_save.connect(create_user_profile, sender=settings.AUTH_USER_MODEL)
 
 class CheckoutLog(models.Model):
     """A record of an item being checked out by a student."""

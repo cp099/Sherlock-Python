@@ -7,6 +7,14 @@ app_name = 'inventory'
 
 urlpatterns = [
     # ==========================================================================
+    # User Profile & Team Management
+    # ==========================================================================
+    path('my-profile/', views.my_profile, name='my_profile'),
+    path('team-management/', views.team_management, name='team_management'),
+    path('team-management/update-role/<int:user_id>/', views.update_user_role, name='update_user_role'),
+    path('team-management/create-user/', views.create_user, name='create_user'),
+
+    # ==========================================================================
     # Main Navigation & Dashboards
     # ==========================================================================
     path('dashboard/', views.dashboard, name='dashboard'),

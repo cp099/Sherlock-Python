@@ -31,12 +31,14 @@
                 <button type="submit">Add to print queue</button>
             </form>
         </div>
-
-        <h2 class="destructive">Delete this section</h2>
-        <p>If you no longer use this section, you can choose to delete it. All spaces associated with this section will be destroyed. This action is irreversible.</p>
-        <form action="{% url 'inventory:section_delete' section.section_code %}" method="post">
-            {% csrf_token %}
-            <button type="submit" class="destructive-background" onclick="return confirm('Are you sure you want to delete this section? This action is irreversible.');">I understand the consequences, delete this section</button>
-        </form>
+        
+        {% if request.user.profile.role == 'ADMIN' %}
+            <h2 class="destructive">Delete this section</h2>
+            <p>If you no longer use this section, you can choose to delete it. All spaces associated with this section will be destroyed. This action is irreversible.</p>
+            <form action="{% url 'inventory:section_delete' section.section_code %}" method="post">
+                {% csrf_token %}
+                <button type="submit" class="destructive-background" onclick="return confirm('Are you sure you want to delete this section? This action is irreversible.');">I understand the consequences, delete this section</button>
+            </form>
+        {% endif %}
     </div>
 {% endblock %}

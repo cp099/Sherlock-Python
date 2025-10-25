@@ -5,6 +5,8 @@ from .models import Section
 from .models import Space
 from .models import Item
 from .models import Student
+from .models import UserProfile
+from django.contrib.auth.models import User
 
 class SectionForm(forms.ModelForm):
     class Meta:
@@ -72,3 +74,15 @@ class StockAdjustmentForm(forms.Form):
         required=True,
         help_text="Please provide a reason for this stock change (e.g., 'New order received', 'Dropped and damaged')."
     )
+
+class UserUpdateForm(forms.ModelForm):
+    """Form for users to update their own basic information."""
+    class Meta:
+        model = User
+        fields = ['first_name', 'last_name', 'email']
+
+class UserRoleForm(forms.ModelForm):
+    """Form for Admins to update a user's role."""
+    class Meta:
+        model = UserProfile
+        fields = ['role']

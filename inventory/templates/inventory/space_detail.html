@@ -32,11 +32,13 @@
             </form>
         </div>
 
-        <h2 class="destructive">Delete this space</h2>
-        <p>If you no longer use this space, you can choose to delete it. All inventory items associated with this space will be destroyed. This action is irreversible.</p>
-        <form action="{% url 'inventory:space_delete' section.section_code space.space_code %}" method="post">
-            {% csrf_token %}
-            <button type="submit" class="destructive-background" onclick="return confirm('Are you sure you want to delete this space? This action is irreversible.');">I understand the consequences, delete this space</button>
-        </form>
+        {% if request.user.profile.role == 'ADMIN' %}
+            <h2 class="destructive">Delete this space</h2>
+            <p>If you no longer use this space, you can choose to delete it. All inventory items associated with this space will be destroyed. This action is irreversible.</p>
+            <form action="{% url 'inventory:space_delete' section.section_code space.space_code %}" method="post">
+                {% csrf_token %}
+                <button type="submit" class="destructive-background" onclick="return confirm('Are you sure you want to delete this space? This action is irreversible.');">I understand the consequences, delete this space</button>
+            </form>
+        {% endif %}
     </div>
 {% endblock %}

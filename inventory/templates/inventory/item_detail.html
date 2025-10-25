@@ -34,9 +34,11 @@
             <div class="action-grid">
                 <!-- First Row -->
                 <div class="action-row">
+                    {% if request.user.profile.role == 'ADMIN' %}
                     <div>
                         <a href="{% url 'inventory:item_update' section_code=item.space.section.section_code space_code=item.space.space_code item_code=item.item_code %}">Edit Details</a>
                     </div>
+                    {% endif %}
                     <div>
                         <a href="{% url 'inventory:adjust_stock' section_code=item.space.section.section_code space_code=item.space.space_code item_code=item.item_code action='RECEIVED' %}" class="link-button">Receive Stock</a>
                     </div>
@@ -62,12 +64,14 @@
 
             <hr>
 
-            <h2 class="destructive" style="margin-top: 2em;">Delete this Item</h2>
-            <p>This action is irreversible.</p>
-            <form action="{% url 'inventory:item_delete' section_code=item.space.section.section_code space_code=item.space.space_code item_code=item.item_code %}" method="post">
-                {% csrf_token %}
-                <button type="submit" class="destructive-background" onclick="return confirm('Are you sure you want to delete this item?');">I understand the consequences, delete this item</button>
-            </form>
+            {% if request.user.profile.role == 'ADMIN' %}
+                <h2 class="destructive" style="margin-top: 2em;">Delete this Item</h2>
+                <p>This action is irreversible.</p>
+                <form action="{% url 'inventory:item_delete' section_code=item.space.section.section_code space_code=item.space.space_code item_code=item.item_code %}" method="post">
+                    {% csrf_token %}
+                    <button type="submit" class="destructive-background" onclick="return confirm('Are you sure you want to delete this item?');">I understand the consequences, delete this item</button>
+                </form>
+            {% endif %}
         </div>
 
         <!-- === RIGHT COLUMN === -->

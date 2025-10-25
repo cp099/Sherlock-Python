@@ -78,6 +78,18 @@
                     <span class="navigation-category-title">Account</span>
                 </div>
                 <div class="navigation-object">
+                    <a class="navigation-link" href="{% url 'inventory:my_profile' %}">
+                        <i class="fa-solid fa-user"></i> My Profile ({{ request.user.username }})
+                    </a>
+                </div>
+                {% if request.user.profile.role == 'ADMIN' %}
+                <div class="navigation-object">
+                    <a class="navigation-link" href="{% url 'inventory:team_management' %}">
+                        <i class="fa-solid fa-users"></i> Team Management
+                    </a>
+                </div>
+                {% endif %}
+                <div class="navigation-object">
                     <form action="{% url 'logout' %}" method="post">
                         {% csrf_token %}
                         <button type="submit" class="navigation-link" style="width:100%; text-align:left; background:none; border:none; padding: 7px 25px; font-size: 16px;">Logout</button>
