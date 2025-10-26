@@ -56,13 +56,16 @@ except Exception as e:
 
 ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
 if not DEBUG:
+    detected_ip = os.environ.get('SHERLOCK_ALLOWED_IP')
+    if detected_ip:
+        ALLOWED_HOSTS.append(detected_ip)
+    
     try:
         hostname = socket.gethostname()
-        ALLOWED_HOSTS.append(hostname)
-        ip_address = socket.gethostbyname(hostname)
-        ALLOWED_HOSTS.append(ip_address)
-    except socket.gaierror:
-        print("Warning: Could not determine hostname or IP for ALLOWED_HOSTS. Network access may be limited.")
+        if hostname:
+            ALLOWED_HOSTS.append(hostname)
+    except Exception:
+        pass
 
 
 # Application definition
