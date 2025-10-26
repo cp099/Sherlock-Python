@@ -1,0 +1,9 @@
+# Caddyfile for Sherlock (auto-generated)
+
+192.168.31.243:8443, Chirags-Air-4.lan:8443, localhost:8443, 127.0.0.1:8443 {
+    # 'tls internal' goes INSIDE the site block to apply a self-signed certificate.
+    tls internal
+
+    # Forward all traffic to our Waitress server.
+    reverse_proxy 127.0.0.1:8000
+}

@@ -185,3 +185,11 @@ SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 
 SESSION_COOKIE_AGE = 1800
 
+if not DEBUG:
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'httpss')
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    
+    CSRF_TRUSTED_ORIGINS = [f'https://{host}:8443' for host in ALLOWED_HOSTS]
+
+    CSRF_TRUSTED_ORIGINS.extend(['https://localhost:8443', 'https://127.0.0.1:8443'])
