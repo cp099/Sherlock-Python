@@ -1,90 +1,109 @@
-<!-- sherlock-python/inventory/templates/inventory/student_detail.html -->
-
 {% extends "inventory/base.html" %}
 
 {% block content %}
     <p><a href="{% url 'inventory:student_list' %}">< See all students</a></p>
     <h1>{{ student.name }}</h1>
-
-    <div class="detail-container">
-        <table class="open-table">
-            <thead>
-                <tr><th>Parameter</th><th>Value</th></tr>
-            </thead>
-            <tbody>
-                <tr><td>Name</td><td>{{ student.name }}</td></tr>
-                <tr><td>Admission Number</td><td>{{ student.admission_number }}</td></tr>
-                <tr><td>Class</td><td>{{ student.student_class }}</td></tr>
-                <tr><td>Section</td><td>{{ student.section }}</td></tr>
-            </tbody>
-        </table>
-
-        <div class="action-area">
-            <a href="{% url 'inventory:student_update' student.id %}">Edit Student Record</a>
-        </div>
+    <div class="item-detail-layout">
         
-        <!-- === LOAN HISTORY SECTION === -->
-        <h2>Items Currently on Loan</h2>
-        {% if items_on_loan %}
+        <!-- === LEFT COLUMN: Primary Details & Current Loans === -->
+        <div class="item-detail-main-column">
             <table class="open-table">
                 <thead>
-                    <tr><th>Item</th><th>Quantity</th><th>Checked Out</th><th>Due Date</th></tr>
+                    <tr><th>Parameter</th><th>Value</th></tr>
                 </thead>
                 <tbody>
-                    {% for log in items_on_loan %}
-                    <tr>
-                        <td><a href="{{ log.item.get_absolute_url }}">{{ log.item.name }}</a></td>
-                        <td>{{ log.quantity }}</td>
-                        <td>{{ log.checkout_date }}</td>
-                        <td>{{ log.due_date }}</td>
-                    </tr>
-                    {% endfor %}
+                    <tr><td>Name</td><td>{{ student.name }}</td></tr>
+                    <tr><td>Admission Number</td><td>{{ student.admission_number }}</td></tr>
+                    <tr><td>Class</td><td>{{ student.student_class }}</td></tr>
+                    <tr><td>Section</td><td>{{ student.section }}</td></tr>
                 </tbody>
             </table>
-        {% else %}
-            <p>This student has no items currently on loan.</p>
-        {% endif %}
 
-        <h2 style="margin-top: 2em;">Return History</h2>
-            {% if return_history %}
+            <div class="action-area">
+                {% if request.user.profile.role == 'ADMIN' %}
+                    <a href="{% url 'inventory:student_update' student.id %}">Edit Student Record</a>
+                {% endif %}
+            </div>
+
+            <hr>
+            
+            <h2 style="margin-top: 1.5em;">Items Currently on Loan</h2>
+            {% if items_on_loan %}
                 <table class="open-table">
                     <thead>
                         <tr>
                             <th>Item</th>
-                            <th>Quantity Returned</th>
-                            <th>Return Date</th>
-                            <th>Condition</th>
+                            <th>Quantity</th>
+                            <th>Checked Out</th>
+                            <th>Due Date</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {% for log in return_history %}
+                        {% for log in items_on_loan %}
                         <tr>
-                            <td><a href="{{ log.checkout_log.item.get_absolute_url }}">{{ log.checkout_log.item.name }}</a></td>
-                            <td>{{ log.quantity_returned }}</td>
-                            <td>{{ log.return_date }}</td>
-                            <td>
-                                {% if log.condition == 'OK' %}
-                                    <span class="badge bg-success">{{ log.get_condition_display }}</span>
-                                {% else %}
-                                    <span class="badge bg-danger">{{ log.get_condition_display }}</span>
-                                {% endif %}
-                            </td>
+                            <td><a href="{{ log.item.get_absolute_url }}">{{ log.item.name }}</a></td>
+                            <td>{{ log.quantity_still_on_loan }}</td>
+                            <td>{{ log.checkout_date|date:"d M Y" }}</td>
+                            <td>{{ log.due_date|date:"d M Y" }}</td>
                         </tr>
                         {% endfor %}
                     </tbody>
                 </table>
             {% else %}
-                <p>This student has no return history.</p>
+                <p>This student has no items currently on loan.</p>
             {% endif %}
 
-        {% if request.user.profile.role == 'ADMIN' %}
-            <h2 class="destructive">Delete this student</h2>
-            <form action="{% url 'inventory:student_delete' student.id %}" method="post">
-                {% csrf_token %}
-                <button type="submit" class="destructive-background" onclick="return confirm('Are you sure you want to delete this student record? This action is irreversible.');">
-                    I understand, delete this student
-                </button>
-            </form>
-        {% endif %}
+            {% if request.user.profile.role == 'ADMIN' %}
+                <hr style="margin-top: 2em;">
+                <h2 class="destructive" style="margin-top: 1.5em;">Delete this student</h2>
+                <form action="{% url 'inventory:student_delete' student.id %}" method="post">
+                    {% csrf_token %}
+                    <button type="submit" class="destructive-background" onclick="return confirm('Are you sure you want to delete this student record? This action is irreversible.');">
+                        I understand, delete this student
+                    </button>
+                </form>
+            {% endif %}
+        </div>
+
+        <!-- === RIGHT COLUMN: Scrollable Return History === -->
+        <div class="item-detail-history-column">
+            <h2>Return History</h2>
+            
+            {% if not return_history %}
+                <p>This student has no return history.</p>
+            {% else %}
+                <div class="log-container-4-rows">
+                    <table class="open-table">
+                        <thead>
+                            <tr>
+                                <th>Item</th>
+                                <th>Qty</th>
+                                <th>Return Date</th>
+                                <th>Condition</th>
+                                <th>Reason for Checkout</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for log in return_history %}
+                            <tr>
+                                <td><a href="{{ log.checkout_log.item.get_absolute_url }}">{{ log.checkout_log.item.name }}</a></td>
+                                <td>{{ log.quantity_returned }}</td>
+                                <td>{{ log.return_date|date:"d M Y, g:i a" }}</td>
+                                <td>
+                                    {% if log.condition == 'OK' %}
+                                        <span class="badge bg-success">{{ log.get_condition_display }}</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">{{ log.get_condition_display }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ log.checkout_log.notes|default:"--" }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% endif %}
+        </div>
+        
     </div>
 {% endblock %}
