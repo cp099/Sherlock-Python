@@ -1,31 +1,95 @@
 {% extends "inventory/base.html" %}
+
 {% block content %}
-    <div style="display: flex; justify-content: space-between; align-items: center;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
         <h1>Team Management</h1>
-        <a href="{% url 'inventory:create_user' %}" class="link-button">Add New User</a>
+        <a href="{% url 'inventory:create_user' %}" class="btn btn-primary">
+            <i class="fas fa-user-plus"></i> Add New User
+        </a>
     </div>
-    <p>As an Admin, you can manage the roles of other users in the system.</p>
+    <p>As an Admin, you can manage user roles, view their activity status, and control their access to the system.</p>
 
     <table class="open-table">
         <thead>
-            <tr><th>Username</th><th>Email</th><th>Current Role</th><th>Change Role</th></tr>
+            <tr>
+                <th>Username</th>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Account Status</th>
+                <th>Activity Status</th>
+                <th style="text-align: center;">Actions</th>
+            </tr>
         </thead>
         <tbody>
             {% for profile in users %}
             <tr>
+                <!-- Username -->
                 <td>{{ profile.user.username }}</td>
-                <td>{{ profile.user.email }}</td>
-                <td>{{ profile.get_role_display }}</td>
+
+                <!-- Email -->
+                <td>{{ profile.user.email|default:"Not set" }}</td>
+
+                <!-- Role -->
                 <td>
-                    <form action="{% url 'inventory:update_user_role' profile.id %}" method="post">
+                    <form action="{% url 'inventory:update_user_role' profile.id %}" method="post" style="margin:0;">
                         {% csrf_token %}
-                        <select name="role" onchange="this.form.submit()">
-                            {% for value, name in form.fields.role.choices %}
+                        <select name="role" onchange="this.form.submit()" class="form-control form-control-sm">
+                            {% for value, name in profile.Role.choices %}
                                 <option value="{{ value }}" {% if profile.role == value %}selected{% endif %}>{{ name }}</option>
                             {% endfor %}
                         </select>
                     </form>
                 </td>
+                
+                <!-- Account Status (Active/Suspended) -->
+                <td>
+                    {% if profile.user.is_active %}
+                        <span class="badge bg-success">Active</span>
+                    {% else %}
+                        <span class="badge bg-secondary">Suspended</span>
+                    {% endif %}
+                </td>
+
+                <!-- Activity Status (Online/Offline) -->
+                <td>
+                    {% if profile.is_online %}
+                        <span class="badge bg-primary">Online</span>
+                    {% else %}
+                        <span class="badge bg-light text-dark">Offline</span>
+                    {% endif %}
+                </td>
+
+                <!-- Actions -->
+                <td style="text-align: center; white-space: nowrap;">
+                    <!-- Suspend/Reactivate Button -->
+                    <form action="{% url 'inventory:toggle_user_active' profile.user.id %}" method="post" style="display: inline-block; margin: 0;">
+                        {% csrf_token %}
+                        {% if profile.user.is_active %}
+                            <button type="submit" class="btn btn-warning btn-sm" title="Suspend this user's account">
+                                <i class="fas fa-user-slash"></i> Suspend
+                            </button>
+                        {% else %}
+                            <button type="submit" class="btn btn-success btn-sm" title="Reactivate this user's account">
+                                <i class="fas fa-user-check"></i> Reactivate
+                            </button>
+                        {% endif %}
+                    </form>
+                    
+                    <!-- Force Logout Button -->
+                    {% if profile.is_online and profile.user.is_active %}
+                    <form action="{% url 'inventory:force_logout_user' profile.user.id %}" method="post" style="display: inline-block; margin: 0 0 0 5px;">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger btn-sm" title="Forcibly end all active sessions for this user"
+                                onclick="return confirm('Are you sure you want to force logout {{ profile.user.username }}? They will be immediately signed out of all devices.');">
+                            <i class="fas fa-sign-out-alt"></i> Force Logout
+                        </button>
+                    </form>
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6" style="text-align: center;">There are no other users in the system.</td>
             </tr>
             {% endfor %}
         </tbody>

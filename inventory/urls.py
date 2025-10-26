@@ -11,8 +11,10 @@ urlpatterns = [
     # ==========================================================================
     path('my-profile/', views.my_profile, name='my_profile'),
     path('team-management/', views.team_management, name='team_management'),
-    path('team-management/update-role/<int:user_id>/', views.update_user_role, name='update_user_role'),
     path('team-management/create-user/', views.create_user, name='create_user'),
+    path('team-management/update-role/<int:user_id>/', views.update_user_role, name='update_user_role'),
+    path('team-management/toggle-active/<int:user_id>/', views.toggle_user_active_status, name='toggle_user_active'),
+    path('team-management/force-logout/<int:user_id>/', views.force_logout_user, name='force_logout_user'),
 
     # ==========================================================================
     # Main Navigation & Dashboards

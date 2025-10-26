@@ -13,7 +13,7 @@ from django.utils import timezone
 from django.db.models import Q, Sum, Max, F, Count
 from django.db.models.functions import TruncDay
 from django.contrib.auth.models import User
-
+from django.contrib.sessions.models import Session
 
 from .models import Section, Space, Item, PrintQueue, PrintQueueItem, SearchEntry, Student, CheckoutLog, CheckInLog, ItemLog, UserProfile
 from .forms import SectionForm, SpaceForm, ItemForm, StudentForm, StockAdjustmentForm, UserUpdateForm, UserRoleForm
@@ -1041,6 +1041,50 @@ def create_user(request):
         form = UserCreationForm()
     context = {'form': form}
     return render(request, 'inventory/create_user.html', context)
+
+@login_required
+@admin_required
+def force_logout_user(request, user_id):
+    """
+    Finds and deletes all active sessions for a given user,
+    effectively logging them out on their next request.
+    """
+    if request.method == 'POST':
+        user_to_logout = get_object_or_404(User, id=user_id)
+        
+        # Find all session objects associated with this user
+        for session in Session.objects.all():
+            if session.get_decoded().get('_auth_user_id') == str(user_to_logout.id):
+                session.delete()
+
+        messages.success(request, f"All active sessions for {user_to_logout.username} have been terminated.")
+    return redirect('inventory:team_management')
+
+@login_required
+@admin_required
+def toggle_user_active_status(request, user_id):
+    """
+    Toggles the is_active flag for a user, effectively suspending or
+    reactivating their account.
+    """
+    if request.method == 'POST':
+        user_to_toggle = get_object_or_404(User, id=user_id)
+        
+        # Toggle the is_active status
+        user_to_toggle.is_active = not user_to_toggle.is_active
+        user_to_toggle.save()
+        
+        status = "reactivated" if user_to_toggle.is_active else "suspended"
+        messages.success(request, f"The account for {user_to_toggle.username} has been {status}.")
+
+        # If we suspend the user, also log them out for immediate effect
+        if not user_to_toggle.is_active:
+            for session in Session.objects.all():
+                if session.get_decoded().get('_auth_user_id') == str(user_to_toggle.id):
+                    session.delete()
+            messages.info(request, f"Active sessions for {user_to_toggle.username} were also terminated.")
+            
+    return redirect('inventory:team_management')
 
 def custom_page_not_found_view(request, exception):
     """

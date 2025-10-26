@@ -218,16 +218,27 @@ class Student(TimeStampedModel):
         super().save(*args, **kwargs)
 
 class UserProfile(models.Model):
-    """Extends the default Django User model to include a role."""
+    """Extends the default Django User model to include a role and activity tracking."""
     class Role(models.TextChoices):
         ADMIN = 'ADMIN', 'Admin'
         MEMBER = 'MEMBER', 'Member'
 
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='profile')
     role = models.CharField(max_length=10, choices=Role.choices, default=Role.MEMBER)
+    last_seen = models.DateTimeField(null=True, blank=True, help_text="The last time the user made a request.")
 
     def __str__(self):
         return f"{self.user.username} - {self.get_role_display()}"
+
+    @property
+    def is_online(self):
+        """
+        Determines if the user is 'online' based on their last seen time.
+        A user is considered online if they were active in the last 5 minutes.
+        """
+        if not self.last_seen:
+            return False
+        return timezone.now() < self.last_seen + timedelta(minutes=5)
 
 def create_user_profile(sender, instance, created, **kwargs):
     if created:
