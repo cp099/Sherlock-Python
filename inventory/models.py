@@ -114,7 +114,7 @@ class Item(TimeStampedModel):
         default=0,
         help_text="Minimum quantity to keep in stock. This amount cannot be checked out."
     )
-    barcode = models.CharField(max_length=12, blank=True, editable=False)
+    barcode = models.CharField(max_length=13, blank=True, editable=False, unique=True, null=True)
     original_section_code = models.PositiveIntegerField(editable=False, null=True)
     original_space_code = models.PositiveIntegerField(editable=False, null=True)
     search_entry = GenericRelation('SearchEntry', object_id_field='object_id', content_type_field='content_type')
@@ -130,11 +130,16 @@ class Item(TimeStampedModel):
             self.original_section_code = self.space.section.section_code
             self.original_space_code = self.space.space_code
         
-        self.barcode = (
+        base_code = (
             f"{self.original_section_code:04d}"
             f"{self.original_space_code:04d}"
             f"{self.item_code:04d}"
         )
+        
+        EAN = barcode.get_barcode_class('ean13')
+        ean_barcode = EAN(base_code)
+        
+        self.barcode = ean_barcode.get_fullcode()
         super().save(*args, **kwargs)
 
         search_entry, created = SearchEntry.objects.get_or_create(

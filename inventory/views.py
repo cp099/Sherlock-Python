@@ -14,6 +14,7 @@ from django.db.models import Q, Sum, Max, F, Count
 from django.db.models.functions import TruncDay
 from django.contrib.auth.models import User
 from django.contrib.sessions.models import Session
+from django.http import HttpResponse, Http404
 
 from .models import Section, Space, Item, PrintQueue, PrintQueueItem, SearchEntry, Student, CheckoutLog, CheckInLog, ItemLog, UserProfile
 from .forms import SectionForm, SpaceForm, ItemForm, StudentForm, StockAdjustmentForm, UserUpdateForm, UserRoleForm
@@ -47,8 +48,8 @@ def signup(request):
 
 def universal_lookup(request):
     """
-    Receives a scanned code and redirects to the appropriate
-    Item, Space, or Section detail page.
+    Receives a scanned code and redirects to the appropriate detail page.
+    Handles multiple barcode formats and shows a user-friendly error if not found.
     """
     code = request.GET.get('code', '').strip()
     
@@ -57,11 +58,12 @@ def universal_lookup(request):
         return redirect('homepage')
 
     try:
-        if code.isdigit() and len(code) >= 12:
-            item = Item.objects.get(barcode=code[:12])
-            messages.success(request, f"Found Item: {item.name}")
-            return redirect(item.get_absolute_url())
 
+        if code.isdigit() and len(code) == 13:
+            item = Item.objects.get(barcode=code)
+            messages.success(request, f"Scan successful: Found item '{item.name}'.")
+            return redirect(item.get_absolute_url())
+            
         if code.startswith('SHERLOCK;'):
             parts = code.split(';')
             section_code_str = next((p.split(':')[1] for p in parts if p.startswith('SECTIONCODE:')), None)
@@ -71,19 +73,20 @@ def universal_lookup(request):
                 section_code = int(section_code_str)
                 if space_code_str: 
                     space_code = int(space_code_str)
-                    space = get_object_or_404(Space, section__section_code=section_code, space_code=space_code)
-                    messages.success(request, f"Found Space: {space.name}")
+                    space = Space.objects.get(section__section_code=section_code, space_code=space_code)
+                    messages.success(request, f"Scan successful: Found space '{space.name}'.")
                     return redirect(space.get_absolute_url())
                 else: 
-                    section = get_object_or_404(Section, section_code=section_code)
-                    messages.success(request, f"Found Section: {section.name}")
+                    section = Section.objects.get(section_code=section_code)
+                    messages.success(request, f"Scan successful: Found section '{section.name}'.")
                     return redirect(section.get_absolute_url())
         
-        messages.error(request, f"Could not find any Item, Section, or Space matching the code.")
-        return redirect('homepage')
 
-    except (Item.DoesNotExist, Section.DoesNotExist, Space.DoesNotExist):
-        messages.error(request, f"Could not find any Item, Section, or Space matching the code.")
+        raise Item.DoesNotExist
+
+    except (Item.DoesNotExist, Section.DoesNotExist, Space.DoesNotExist, ValueError):
+
+        messages.error(request, f"Could not find any item, section, or space matching the scanned code.")
         return redirect('homepage')
 
 @login_required
