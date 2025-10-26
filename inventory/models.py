@@ -268,12 +268,23 @@ class CheckoutLog(models.Model):
     
 class CheckInLog(models.Model):
     """A record of a partial or full return for a specific checkout."""
+    class Condition(models.TextChoices):
+        OK = 'OK', 'OK'
+        DAMAGED = 'DAMAGED', 'Damaged'
+
     checkout_log = models.ForeignKey(CheckoutLog, on_delete=models.CASCADE, related_name="check_in_logs")
     quantity_returned = models.PositiveIntegerField()
     return_date = models.DateTimeField(auto_now_add=True)
+    
+    condition = models.CharField(
+        max_length=10, 
+        choices=Condition.choices, 
+        default=Condition.OK,
+        help_text="The condition of the item upon return."
+    )
 
     def __str__(self):
-        return f"{self.quantity_returned} units of {self.checkout_log.item.name} returned on {self.return_date.strftime('%Y-%m-%d')}"
+        return f"{self.quantity_returned} units of {self.checkout_log.item.name} returned on {self.return_date.strftime('%Y-%m-%d')} (Condition: {self.get_condition_display()})"
 
 class ItemLog(models.Model):
     """A permanent record of a change in an item's stock quantity."""

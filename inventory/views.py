@@ -472,20 +472,21 @@ def student_list(request):
 @login_required
 def student_detail(request, student_id):
     student = get_object_or_404(Student, id=student_id)
+    
     items_on_loan = CheckoutLog.objects.filter(
         student=student,
         return_date__isnull=True
-    ).order_by('-checkout_date')
+    ).select_related('item').order_by('-checkout_date')
 
-    loan_history = CheckoutLog.objects.filter(
-        student=student,
-        return_date__isnull=False
-    ).order_by('-return_date')
+    # This is the new query: it fetches individual return logs instead of closed loans.
+    return_history = CheckInLog.objects.filter(
+        checkout_log__student=student
+    ).select_related('checkout_log__item').order_by('-return_date')
 
     context = {
         'student': student,
         'items_on_loan': items_on_loan,
-        'loan_history': loan_history,
+        'return_history': return_history, # We now pass the new queryset to the template
     }
     return render(request, 'inventory/student_detail.html', context)
 
@@ -892,30 +893,50 @@ def check_in_page(request, log_id):
 @login_required
 def process_check_in(request, log_id):
     """
-    Handles the logic of a partial or full return.
+    Handles the logic of a partial or full return, including item condition.
+    If an item is returned as 'Damaged', its total quantity in the main
+    inventory is permanently reduced.
     """
     if request.method == 'POST':
         log_entry = get_object_or_404(CheckoutLog, id=log_id, return_date__isnull=True)
         
         try:
             quantity_to_return = int(request.POST.get('quantity_returned', 0))
-            quantity_still_on_loan = log_entry.quantity - log_entry.quantity_returned_so_far
+            return_condition = request.POST.get('condition', CheckInLog.Condition.OK)
+            quantity_still_on_loan = log_entry.quantity_still_on_loan
 
-            if quantity_to_return <= 0:
+            if return_condition not in CheckInLog.Condition.values:
+                messages.error(request, "Invalid return condition specified.")
+            elif quantity_to_return <= 0:
                 messages.error(request, "Quantity to return must be a positive number.")
             elif quantity_to_return > quantity_still_on_loan:
                 messages.error(request, f"Cannot return {quantity_to_return}. Only {quantity_still_on_loan} units are on loan.")
             else:
                 CheckInLog.objects.create(
                     checkout_log=log_entry,
-                    quantity_returned=quantity_to_return
+                    quantity_returned=quantity_to_return,
+                    condition=return_condition
                 )
-
+                
+                if return_condition == CheckInLog.Condition.DAMAGED:
+                    item = log_entry.item
+                    item.quantity -= quantity_to_return
+                    item.save()
+                    
+                    ItemLog.objects.create(
+                        item=item,
+                        user=request.user,
+                        action=ItemLog.Action.DAMAGED,
+                        quantity_change=-quantity_to_return,
+                        notes=f"Reported damaged during return by student {log_entry.student.name}."
+                    )
+                    messages.warning(request, f"{quantity_to_return} x '{item.name}' were marked as damaged and removed from total stock.")
+                
                 log_entry.refresh_from_db()
 
-                messages.success(request, f"Successfully returned {quantity_to_return} x '{log_entry.item.name}'.")
+                messages.success(request, f"Successfully processed return of {quantity_to_return} x '{log_entry.item.name}'.")
 
-                if log_entry.quantity_returned_so_far == log_entry.quantity:
+                if log_entry.quantity_still_on_loan == 0:
                     log_entry.return_date = timezone.now()
                     log_entry.save()
                     messages.info(request, "This loan is now fully returned and closed.")

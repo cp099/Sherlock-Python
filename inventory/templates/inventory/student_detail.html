@@ -45,26 +45,37 @@
             <p>This student has no items currently on loan.</p>
         {% endif %}
 
-        <h2 style="margin-top: 2em;">Full Loan History</h2>
-        {% if loan_history %}
-            <table class="open-table">
-                <thead>
-                    <tr><th>Item</th><th>Quantity</th><th>Checked Out</th><th>Returned On</th></tr>
-                </thead>
-                <tbody>
-                    {% for log in loan_history %}
-                    <tr>
-                        <td><a href="{{ log.item.get_absolute_url }}">{{ log.item.name }}</a></td>
-                        <td>{{ log.quantity }}</td>
-                        <td>{{ log.checkout_date }}</td>
-                        <td>{{ log.return_date }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        {% else %}
-            <p>This student has not returned any items yet.</p>
-        {% endif %}
+        <h2 style="margin-top: 2em;">Return History</h2>
+            {% if return_history %}
+                <table class="open-table">
+                    <thead>
+                        <tr>
+                            <th>Item</th>
+                            <th>Quantity Returned</th>
+                            <th>Return Date</th>
+                            <th>Condition</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for log in return_history %}
+                        <tr>
+                            <td><a href="{{ log.checkout_log.item.get_absolute_url }}">{{ log.checkout_log.item.name }}</a></td>
+                            <td>{{ log.quantity_returned }}</td>
+                            <td>{{ log.return_date }}</td>
+                            <td>
+                                {% if log.condition == 'OK' %}
+                                    <span class="badge bg-success">{{ log.get_condition_display }}</span>
+                                {% else %}
+                                    <span class="badge bg-danger">{{ log.get_condition_display }}</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <p>This student has no return history.</p>
+            {% endif %}
 
         {% if request.user.profile.role == 'ADMIN' %}
             <h2 class="destructive">Delete this student</h2>
