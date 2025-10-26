@@ -29,3 +29,6 @@ dist/
 
 # Django Production / Build Artifacts
 staticfiles/
+
+# Secret key file
+.secret_key_file

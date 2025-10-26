@@ -13,7 +13,10 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
 import socket
+import os
 from pathlib import Path
+from django.core.management.utils import get_random_secret_key
+from django.core.exceptions import ImproperlyConfigured
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -22,11 +25,34 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-gspzj&@$^rf!^erfwwj_2zm@thy@q-4sag4xip^8gdm5b-&e6s'
+# DEBUG mode should be True for local development and False for production.
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = os.environ.get('DEBUG', 'False').lower() in ('true', '1', 't')
+
+
+try:
+    SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY')
+    if SECRET_KEY is None:
+        secret_key_file = BASE_DIR / '.secret_key_file'
+        
+        if secret_key_file.exists():
+            with open(secret_key_file, 'r') as f:
+                SECRET_KEY = f.read().strip()
+        else:
+            print("INFO: No secret key file found. Generating a new one.")
+            SECRET_KEY = get_random_secret_key()
+            with open(secret_key_file, 'w') as f:
+                f.write(SECRET_KEY)
+            print(f"INFO: New secret key has been saved to {secret_key_file}")
+            
+    if not SECRET_KEY:
+        raise ValueError("Secret key is empty after trying all methods.")
+
+except Exception as e:
+    raise ImproperlyConfigured(
+        f"CRITICAL ERROR: Could not find or create a SECRET_KEY. "
+        f"Ensure the directory is writable. Original error: {e}"
+    )
 
 ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
 if not DEBUG:
@@ -108,6 +134,9 @@ AUTH_PASSWORD_VALIDATORS = [
     },
     {
         'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        'OPTIONS': {
+            'min_length': 8,
+        }
     },
     {
         'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
@@ -148,3 +177,8 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_REDIRECT_URL = "/dashboard/"
 
 LOGOUT_REDIRECT_URL = "/"
+
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+
+SESSION_COOKIE_AGE = 1800
+
