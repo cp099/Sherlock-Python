@@ -2,7 +2,7 @@
 
 ![Python Version](https://img.shields.io/badge/python-3.11+-blue.svg)
 ![Django Version](https://img.shields.io/badge/django-5.x-green.svg)
-![License](https://img.shields.io/badge/License-Apache_2.0-yellow.svg)
+![License](https://img.shields.io/badge/License-GPLv3-blue.svg)
 
 **Sherlock is a comprehensive, self-hosted inventory and lending management system designed for school labs, makerspaces, and workshops.** It provides a powerful, data-driven platform to track assets, manage student loans, and gain insight into your lab's operations, all accessible from any device on your network.
 
@@ -191,4 +191,4 @@ For a more detailed development setup, including how to create a superuser for t
 
 ## ⚖️ License
 
-This project is licensed under the Apache License, Version 2.0. See the [LICENSE](LICENSE) file for the full license text and the [NOTICE](NOTICE) file for attribution details.
+This project is licensed under the GNU General Public License v3.0. See the [LICENSE](LICENSE) file for the full license text and the [NOTICE](NOTICE) file for attribution details
