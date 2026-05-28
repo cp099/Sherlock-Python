@@ -19,10 +19,9 @@ echo --- Generating Caddyfile... ---
 
 
 echo --- Running database migrations... ---
-call venv\Scripts\activate.bat
-python manage.py migrate --noinput
+venv\Scripts\python.exe manage.py migrate --noinput
 echo --- Collecting static files... ---
-python manage.py collectstatic --noinput
+venv\Scripts\python.exe manage.py collectstatic --noinput
 
 
 echo --- Starting Caddy in the background... ---
@@ -33,10 +32,10 @@ echo =====================================================================
 echo   Sherlock is now running securely!
 echo   Access it from any device at: https://%IP_ADDRESS%:8443
 echo   Or on this machine at:         https://localhost:8443
-echo =====================================================================
+=====================================================================
 echo.
 echo Waitress is running in the foreground. Press Ctrl+C to stop the server.
 echo When you are done, run the 'stop_production.bat' script to shut down Caddy.
 
 
-python run.py
+venv\Scripts\python.exe run.py
