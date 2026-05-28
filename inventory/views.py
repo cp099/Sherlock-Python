@@ -46,6 +46,7 @@ def signup(request):
         form = UserCreationForm()
     return render(request, 'registration/signup.html', {'form': form})
 
+@login_required
 def universal_lookup(request):
     """
     Receives a scanned code and redirects to the appropriate detail page.
@@ -603,7 +604,7 @@ def live_unified_item_search(request):
     if len(item_query) >= 1:
         search_entries = SearchEntry.objects.filter(
             name__icontains=item_query
-        ).select_related('content_type')
+        ).select_related('content_type').prefetch_related('searchable_object')
         item_results = search_entries
     
     context = {
@@ -712,7 +713,13 @@ def checkout_session(request, student_id):
             query = request.POST.get('query', '').strip()
 
         if query:
-            if query.isdigit() and len(query) >= 12:
+            if query.isdigit() and len(query) == 13:
+                try:
+                    item_to_add = Item.objects.get(barcode=query)
+                except Item.DoesNotExist:
+                    pass
+
+            if not item_to_add and query.isdigit() and len(query) >= 12:
                 try:
                     section_code = int(query[0:4])
                     space_code = int(query[4:8])
@@ -923,6 +930,10 @@ def process_check_in(request, log_id):
                 
                 if return_condition == CheckInLog.Condition.DAMAGED:
                     item = log_entry.item
+                    if item.quantity < quantity_to_return:
+                        messages.error(request, f"Error: Cannot mark {quantity_to_return} units as damaged because the item's total stock in inventory is only {item.quantity} (perhaps stock was manually reduced). Please correct the stock first.")
+                        return redirect('inventory:check_in_page', log_id=log_id)
+                    
                     item.quantity -= quantity_to_return
                     item.save()
                     

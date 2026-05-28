@@ -6,7 +6,7 @@ set -e
 echo "--- Starting Sherlock in PRODUCTION mode (HTTPS) ---"
 
 
-IP_ADDRESS=$(python -c "import socket;s=socket.socket(socket.AF_INET, socket.SOCK_DGRAM);s.settimeout(0);s.connect(('10.254.254.254', 1));print(s.getsockname()[0]);s.close()")
+IP_ADDRESS=$(python3 -c "import socket;s=socket.socket(socket.AF_INET, socket.SOCK_DGRAM);s.settimeout(0);s.connect(('10.254.254.254', 1));print(s.getsockname()[0]);s.close()")
 HOSTNAME=$(hostname)
 export SHERLOCK_ALLOWED_IP=$IP_ADDRESS
 
@@ -30,9 +30,9 @@ EOM
 
 
 echo "--- Running database migrations... ---"
-python manage.py migrate --noinput
+./venv/bin/python manage.py migrate --noinput
 echo "--- Collecting static files... ---"
-python manage.py collectstatic --noinput
+./venv/bin/python manage.py collectstatic --noinput
 
 
 cleanup() {
@@ -47,13 +47,19 @@ caddy start
 
 echo "--- Starting Sherlock application server (Waitress)... ---"
 echo
+if [ -x "$(command -v tput)" ]; then
+    tput setaf 2
+fi
 echo "====================================================================="
 echo "  Sherlock is now running securely!"
 echo "  Access it from any device at: https://$IP_ADDRESS:8443"
 echo "  Or on this machine at:         https://localhost:8443"
 echo "====================================================================="
+if [ -x "$(command -v tput)" ]; then
+    tput sgr0
+fi
 echo
 echo "Waitress is running in the foreground. Press Ctrl+C to stop everything."
 
 
-python run.py
+./venv/bin/python run.py

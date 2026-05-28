@@ -14,6 +14,7 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 
 import socket
 import os
+import sys
 from pathlib import Path
 from django.core.management.utils import get_random_secret_key
 from django.core.exceptions import ImproperlyConfigured
@@ -27,7 +28,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # DEBUG mode should be True for local development and False for production.
 
-DEBUG = os.environ.get('DEBUG', 'False').lower() in ('true', '1', 't')
+DEBUG = os.environ.get('DEBUG', 'True' if 'runserver' in sys.argv else 'False').lower() in ('true', '1', 't')
 
 
 try:
@@ -169,7 +170,21 @@ STATIC_URL = 'static/'
 
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
-STATICFILES_STORAGE = "whitnoise.storage.CompressedManifestStaticFilesStorage"
+import sys
+
+if 'test' in sys.argv:
+    staticfiles_backend = "django.contrib.staticfiles.storage.StaticFilesStorage"
+else:
+    staticfiles_backend = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+
+STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+    "staticfiles": {
+        "BACKEND": staticfiles_backend,
+    },
+}
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
@@ -186,7 +201,7 @@ SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 SESSION_COOKIE_AGE = 1800
 
 if not DEBUG:
-    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'httpss')
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
     

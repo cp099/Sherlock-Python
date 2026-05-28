@@ -248,7 +248,8 @@ class UserProfile(models.Model):
 
 def create_user_profile(sender, instance, created, **kwargs):
     if created:
-        UserProfile.objects.create(user=instance)
+        role = UserProfile.Role.ADMIN if instance.is_superuser else UserProfile.Role.MEMBER
+        UserProfile.objects.create(user=instance, role=role)
 
 post_save.connect(create_user_profile, sender=settings.AUTH_USER_MODEL)
 

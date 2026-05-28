@@ -19,6 +19,11 @@ class SectionForm(forms.ModelForm):
             'description': forms.Textarea(attrs={'rows': 4}),
         }
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance and self.instance.pk:
+            self.fields['section_code'].disabled = True
+
 class SpaceForm(forms.ModelForm):
     class Meta:
         model = Space
