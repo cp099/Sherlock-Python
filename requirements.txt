@@ -9,6 +9,6 @@ pyinstaller-hooks-contrib==2026.5
 python-barcode==0.16.1
 qrcode==8.2
 setuptools==83.0.0
-sqlparse==0.5.5
+sqlparse==0.6.0
 waitress==3.0.2
 whitenoise==6.12.0
