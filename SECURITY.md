@@ -4,7 +4,7 @@ The Sherlock team and community take the security of our software seriously. We 
 
 ## Supported Versions
 
-All security updates are applied to the most recent release. Only the latest version of Sherlock is officially supported. Please ensure you are running the latest version available on our [Releases page](https://github.com/YOUR-USERNAME/Sherlock-python/releases) before reporting a vulnerability.
+All security updates are applied to the most recent release. Only the latest version of Sherlock is officially supported. Please ensure you are running the latest version available on our [Releases page](https://github.com/cp099/Sherlock-python/releases) before reporting a vulnerability.
 
 | Version | Supported          |
 | ------- | ------------------ |
@@ -19,7 +19,7 @@ We are committed to working with the community to verify and respond to any pote
 
 Instead, please use the **Private Vulnerability Reporting** feature on GitHub.
 
-1.  Go to the main page of the [Sherlock repository](https://github.com/YOUR-USERNAME/Sherlock-python).
+1.  Go to the main page of the [Sherlock repository](https://github.com/cp099/Sherlock-python).
 2.  Click on the **"Security"** tab.
 3.  Click on **"Report a vulnerability"** on the right-hand side.
 

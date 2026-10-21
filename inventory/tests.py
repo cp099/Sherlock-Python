@@ -6,7 +6,7 @@ from django.urls import reverse
 from django.utils import timezone
 from datetime import timedelta
 
-from .models import Section, Space, Item, Student, CheckoutLog, CheckInLog, ItemLog
+from .models import Section, Space, Item, Student, CheckoutLog, CheckInLog, ItemLog, SearchEntry
 
 # ==============================================================================
 #  MODEL TESTS
@@ -166,3 +166,81 @@ class ViewAndWorkflowTests(TestCase):
         log.refresh_from_db()
         self.assertEqual(log.quantity_still_on_loan, 0)
         self.assertIsNotNone(log.return_date)
+
+    def test_item_detail_loan_history_filtering(self):
+        """Test filtering the loan history on item detail page by period and custom date."""
+        now = timezone.now()
+        # Create a loan today
+        log_today = CheckoutLog.objects.create(
+            item=self.item, student=self.student, quantity=1, due_date=now + timedelta(days=1)
+        )
+        # Create an older loan 20 days ago
+        log_20d = CheckoutLog.objects.create(
+            item=self.item, student=self.student, quantity=1, due_date=now - timedelta(days=15)
+        )
+        CheckoutLog.objects.filter(id=log_20d.id).update(checkout_date=now - timedelta(days=20))
+
+        # Create an older loan 100 days ago
+        log_100d = CheckoutLog.objects.create(
+            item=self.item, student=self.student, quantity=1, due_date=now - timedelta(days=90)
+        )
+        CheckoutLog.objects.filter(id=log_100d.id).update(checkout_date=now - timedelta(days=100))
+
+        detail_url = reverse('inventory:item_detail', args=[self.section.section_code, self.space.space_code, self.item.item_code])
+
+        # Test filter=week (should only include log_today)
+        resp_week = self.client.get(detail_url, {'filter': 'week'})
+        self.assertEqual(resp_week.status_code, 200)
+        self.assertIn(log_today, resp_week.context['item_loan_history'])
+        self.assertNotIn(log_20d, resp_week.context['item_loan_history'])
+        self.assertNotIn(log_100d, resp_week.context['item_loan_history'])
+
+        # Test filter=month (should include log_today and log_20d, but not log_100d)
+        resp_month = self.client.get(detail_url, {'filter': 'month'})
+        self.assertEqual(resp_month.status_code, 200)
+        self.assertIn(log_today, resp_month.context['item_loan_history'])
+        self.assertIn(log_20d, resp_month.context['item_loan_history'])
+        self.assertNotIn(log_100d, resp_month.context['item_loan_history'])
+
+        # Test filter=year (should include all three)
+        resp_year = self.client.get(detail_url, {'filter': 'year'})
+        self.assertEqual(resp_year.status_code, 200)
+        self.assertIn(log_today, resp_year.context['item_loan_history'])
+        self.assertIn(log_20d, resp_year.context['item_loan_history'])
+        self.assertIn(log_100d, resp_year.context['item_loan_history'])
+
+        # Test filter=custom with date range matching only log_20d
+        start_d = (now - timedelta(days=25)).strftime('%Y-%m-%d')
+        end_d = (now - timedelta(days=15)).strftime('%Y-%m-%d')
+        resp_custom = self.client.get(detail_url, {'filter': 'custom', 'start_date': start_d, 'end_date': end_d})
+        self.assertEqual(resp_custom.status_code, 200)
+        self.assertNotIn(log_today, resp_custom.context['item_loan_history'])
+        self.assertIn(log_20d, resp_custom.context['item_loan_history'])
+        self.assertNotIn(log_100d, resp_custom.context['item_loan_history'])
+
+    def test_unified_search_indexing_for_section_space_item(self):
+        """Test that Sections, Spaces, and Items are indexed in SearchEntry and searchable."""
+        # Section and Space SearchEntry should exist from setUp
+        section_entry = SearchEntry.objects.filter(name=self.section.name).first()
+        self.assertIsNotNone(section_entry)
+        self.assertEqual(section_entry.url, self.section.get_absolute_url())
+
+        space_entry = SearchEntry.objects.filter(name=self.space.name).first()
+        self.assertIsNotNone(space_entry)
+        self.assertEqual(space_entry.url, self.space.get_absolute_url())
+
+        item_entry = SearchEntry.objects.filter(name=self.item.name).first()
+        self.assertIsNotNone(item_entry)
+        self.assertEqual(item_entry.url, self.item.get_absolute_url())
+
+        # Test unified item search endpoint returns results for section, space, and item
+        search_url = reverse('inventory:live_unified_item_search')
+        resp = self.client.get(search_url, {'item_query': 'Test'})
+        self.assertEqual(resp.status_code, 200)
+        content = resp.content.decode('utf-8')
+        self.assertIn(self.section.get_absolute_url(), content)
+        self.assertIn(self.space.get_absolute_url(), content)
+        self.assertIn(self.item.get_absolute_url(), content)
+        self.assertIn('Section', content)
+        self.assertIn('Space', content)
+        self.assertIn('Item', content)

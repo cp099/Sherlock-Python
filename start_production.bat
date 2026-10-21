@@ -32,7 +32,7 @@ echo =====================================================================
 echo   Sherlock is now running securely!
 echo   Access it from any device at: https://%IP_ADDRESS%:8443
 echo   Or on this machine at:         https://localhost:8443
-=====================================================================
+echo =====================================================================
 echo.
 echo Waitress is running in the foreground. Press Ctrl+C to stop the server.
 echo When you are done, run the 'stop_production.bat' script to shut down Caddy.

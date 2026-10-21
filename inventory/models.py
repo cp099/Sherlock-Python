@@ -43,6 +43,16 @@ class Section(TimeStampedModel):
     def get_absolute_url(self):
         return reverse('inventory:section_detail', kwargs={'section_code': self.section_code})
 
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        search_entry, created = SearchEntry.objects.get_or_create(
+            content_type=ContentType.objects.get_for_model(self),
+            object_id=self.id
+        )
+        search_entry.name = self.name
+        search_entry.url = self.get_absolute_url()
+        search_entry.save()
+
     def generate_qr_code_svg(self):
         """Generates the QR code SVG content, replicating the Rails logic."""
         padded_name = (self.name + '*' * 50)[:50]
@@ -67,7 +77,7 @@ class Space(TimeStampedModel):
     
     original_section_code = models.PositiveIntegerField(editable=False, null=True)
     
-    search_entry = GenericRelation('SearchEntry')
+    search_entry = GenericRelation('SearchEntry', object_id_field='object_id', content_type_field='content_type')
 
     class Meta:
         unique_together = ('section', 'space_code')
@@ -79,6 +89,14 @@ class Space(TimeStampedModel):
         if self.pk is None:
             self.original_section_code = self.section.section_code
         super().save(*args, **kwargs)
+
+        search_entry, created = SearchEntry.objects.get_or_create(
+            content_type=ContentType.objects.get_for_model(self),
+            object_id=self.id
+        )
+        search_entry.name = self.name
+        search_entry.url = self.get_absolute_url()
+        search_entry.save()
         
     def get_absolute_url(self):
         return reverse('inventory:space_detail', kwargs={'section_code': self.section.section_code, 'space_code': self.space_code})

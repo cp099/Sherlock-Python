@@ -221,7 +221,6 @@ def space_detail(request, section_code, space_code):
     return render(request, 'inventory/space_detail.html', context)
 
 @login_required
-@login_required
 def space_create(request, section_code):
     section = get_object_or_404(Section, section_code=section_code)
     if request.method == 'POST':
@@ -289,9 +288,19 @@ def item_detail(request, section_code, space_code, item_code):
     space = get_object_or_404(Space, section=section, space_code=space_code)
     item = get_object_or_404(Item, space=space, item_code=item_code)
     
-    item_logs = ItemLog.objects.filter(item=item).order_by('-timestamp')
-    
     item_loan_history = CheckoutLog.objects.filter(item=item).select_related('student').order_by('-checkout_date')
+    loan_filter_type = request.GET.get('filter', '')
+    if loan_filter_type == 'week':
+        item_loan_history = item_loan_history.filter(checkout_date__gte=timezone.now() - timedelta(days=7))
+    elif loan_filter_type == 'month':
+        item_loan_history = item_loan_history.filter(checkout_date__gte=timezone.now() - timedelta(days=30))
+    elif loan_filter_type == 'year':
+        item_loan_history = item_loan_history.filter(checkout_date__gte=timezone.now() - timedelta(days=365))
+    elif loan_filter_type == 'custom':
+        start_date = request.GET.get('start_date')
+        end_date = request.GET.get('end_date')
+        if start_date and end_date:
+            item_loan_history = item_loan_history.filter(checkout_date__date__range=[start_date, end_date])
 
     item_logs = ItemLog.objects.filter(item=item).order_by('-timestamp')
     inv_filter_type = request.GET.get('inv_filter', '')
@@ -305,7 +314,7 @@ def item_detail(request, section_code, space_code, item_code):
         start_date = request.GET.get('inv_start_date')
         end_date = request.GET.get('inv_end_date')
         if start_date and end_date:
-            item_logs = item_logs.filter(timestamp__range=[start_date, end_date])
+            item_logs = item_logs.filter(timestamp__date__range=[start_date, end_date])
 
     context = {
         'section': section,
